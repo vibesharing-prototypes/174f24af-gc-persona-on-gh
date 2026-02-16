@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "GC Persona - Command Center",
-  description: "General Counsel persona dashboard prototype",
+  title: "IPO & M&A Readiness - Command Center",
+  description: "CFO journey validation: sell-side M&A and IPO readiness dashboard prototype",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

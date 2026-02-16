@@ -77,8 +77,18 @@ function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function TabletIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="4" y="2" width="16" height="20" rx="2" />
+      <line x1="12" y1="18" x2="12.01" y2="18" />
+    </svg>
+  );
+}
+
 type Vision = "near-term" | "future";
 type DeviceType = "desktop" | "ipad" | "iphone";
+type ModelType = "unified" | "split" | "thread";
 
 type AgentStatus = {
   name: string;
@@ -93,109 +103,109 @@ type AgentStatus = {
 
 const agents: AgentStatus[] = [
   {
-    name: "Matter Monitor",
+    name: "Entity Compliance Monitor",
     lastRun: "12 minutes ago",
     nextRun: "in 18 minutes",
-    note: "All active matters on track; no new filings detected",
+    note: "Good Standing green across 12 entities; 2 TX entities need Comptroller check",
     state: "Monitoring active",
-    criteria: ["New court filings", "Deadline proximity alerts", "Matter status changes"],
-    futureNote: "Predictive case outcome modeling active; settlement recommendations ready",
-    futureCriteria: ["Predicted litigation outcomes", "AI-recommended settlement ranges", "Judge/jurisdiction pattern analysis", "Optimal timing recommendations"],
+    criteria: ["State portal status (DE, CA, TX, UK)", "Good Standing expiry", "Reinstatement deadlines"],
+    futureNote: "Nightly API checks against state registries; void-entity-at-closing alerts on",
+    futureCriteria: ["Multi-jurisdiction dashboards", "Reinstatement timing recommendations", "Certificate expiry alerts", "Bring-down verification scheduling"],
   },
   {
-    name: "Contract Intelligence",
+    name: "VDR & Diligence",
     lastRun: "25 minutes ago",
     nextRun: "in 35 minutes",
-    note: "142 contracts monitored; 3 renewals approaching",
-    state: "Quietly stable",
-    criteria: ["Renewal date tracking", "Obligation deadlines", "Term deviation alerts"],
-    futureNote: "Auto-negotiation drafts prepared for 3 renewals; risk clauses flagged",
-    futureCriteria: ["AI-drafted negotiation positions", "Market-rate benchmarking", "Autonomous redline suggestions", "Counterparty risk scoring"],
+    note: "Data room 78% populated; 3 DD gaps flagged vs buyer request list",
+    state: "On schedule",
+    criteria: ["VDR vs DD checklist gaps", "Q&A triage and assignment", "Document classification"],
+    futureNote: "Auto-population from DMS/Drive/SharePoint; real-time gap reports",
+    futureCriteria: ["VDR auto-population & indexing", "DD gap detection", "Q&A consistency checks", "Heatmap-driven strategy"],
   },
   {
-    name: "Regulatory Watch",
+    name: "Cap Table Reconciliation",
     lastRun: "1 hour ago",
-    nextRun: "in 30 minutes",
-    note: "No new regulations impacting operations this week",
-    state: "Monitoring active",
-    criteria: ["New regulation alerts", "Enforcement action tracking", "Comment period deadlines"],
-    futureNote: "Proactive impact analysis complete for 2 pending regulations",
-    futureCriteria: ["Predictive regulatory impact modeling", "Auto-generated compliance roadmaps", "Cross-jurisdictional harmonization", "Regulatory relationship mapping"],
+    nextRun: "in 2 hours",
+    note: "Carta vs legal docs: 3 scrivener errors, 1 missing 83(b) flagged for tax counsel",
+    state: "Review needed",
+    criteria: ["Carta vs board consents", "83(b) deadline tracking", "SAFE valuation cap conflicts"],
+    futureNote: "Cross-reference Carta against scanned consents; 83(b) and SAFE risk scoring",
+    futureCriteria: ["Automated doc cross-reference", "83(b) gap alerts", "Waterfall impact from SAFE conflicts", "Corrective resolution drafts"],
   },
   {
-    name: "Corporate Governance",
+    name: "Minute Book & D&O",
     lastRun: "2 hours ago",
     nextRun: "in 4 hours",
-    note: "Board compliance current; next meeting materials due in 12 days",
-    state: "On schedule",
-    criteria: ["Board meeting prep deadlines", "D&O compliance checks", "Subsidiary governance audits"],
-    futureNote: "AI-drafted board materials ready for review; governance gaps auto-remediated",
-    futureCriteria: ["Autonomous board brief generation", "Predictive governance risk scoring", "Real-time subsidiary compliance", "Director liability monitoring"],
+    note: "5 missing board consents for option grants; D&O questionnaires 2 of 6 returned",
+    state: "In progress",
+    criteria: ["Missing consents vs corporate actions", "DGCL §204 ratification", "D&O questionnaire completion"],
+    futureNote: "Minute book vs corporate action verification; signature escalation workflows",
+    futureCriteria: ["Gap detection and ratification checklist", "Director signature tracking", "409A cross-check at grant date"],
   },
   {
-    name: "Legal Hold Manager",
+    name: "Disclosure & Certificates",
     lastRun: "3 hours ago",
     nextRun: "tomorrow, 8:00 AM",
-    note: "All holds acknowledged; no custodian gaps",
-    state: "Standing by",
-    criteria: ["Hold acknowledgment tracking", "Custodian compliance", "Data preservation audits"],
-    futureNote: "Predictive hold recommendations for emerging matters; auto-scope optimization",
-    futureCriteria: ["Predictive litigation hold triggers", "AI-optimized custodian scoping", "Autonomous preservation verification", "Cost-benefit hold analysis"],
+    note: "Disclosure schedules draft in review; 8 Good Standing certs ordered for closing",
+    state: "On schedule",
+    criteria: ["SPA rep vs VDR cross-reference", "Certificate procurement and bring-down", "Funds flow accuracy"],
+    futureNote: "AI-generated disclosure schedule first draft; programmatic cert orders and bring-down",
+    futureCriteria: ["Disclosure schedule AI first draft", "Automated certificate procurement", "Bring-down morning-of verification", "Funds flow checklist"],
   },
 ];
 
 const recentApps = {
   "near-term": [
     {
-      name: "Boards",
-      description: "Finalized Q1 board meeting agenda and uploaded supporting materials to the board book.",
+      name: "Entities",
+      description: "Ran jurisdictional Good Standing audit; 2 entities need reinstatement before LOI.",
       lastUsed: "Jan 16",
-      icon: "boards",
+      icon: "entities",
     },
     {
-      name: "Entities",
-      description: "Verified annual report filings for 3 subsidiaries; all jurisdictions current.",
+      name: "VDR",
+      description: "Uploaded Phase 2 folders (CIM, summary financials). 14-section hierarchy ready for Phase 3.",
       lastUsed: "Jan 15",
       icon: "entities",
     },
     {
-      name: "Policy Manager",
-      description: "Reviewed attestation status for updated Code of Conduct; 94% employee completion.",
+      name: "Carta",
+      description: "Cap table reconciliation in progress—pulling board consents from law firm DMS for cross-check.",
       lastUsed: "Jan 14",
       icon: "policy",
     },
     {
-      name: "Diligent AI Reporting",
-      description: "Generated executive summary of legal department KPIs for leadership review.",
+      name: "Minute Book",
+      description: "Corporate Secretary flagged 5 missing option grant consents; ratification checklist created.",
       lastUsed: "Jan 12",
       icon: "reporting",
     },
   ],
   "future": [
     {
-      name: "AI Legal Workspace",
-      description: "Your autonomous agents handled 12 routine matters this week—review the summary.",
+      name: "VDR Auto-Population",
+      description: "Agent pulled from DMS, Drive, and Carta into VDR; 4–8 week manual cut to 1–2 weeks.",
       lastUsed: "Today",
       icon: "ai",
       tag: "AI-Managed",
     },
     {
-      name: "Predictive Analytics",
-      description: "Updated litigation outcome models reflect recent case law changes.",
+      name: "Multi-Jurisdiction Compliance",
+      description: "Nightly state-registry checks; void-entity-at-closing alert triggered for 1 subsidiary.",
       lastUsed: "Today",
       icon: "analytics",
       tag: "Auto-Updated",
     },
     {
-      name: "Autonomous Filings",
-      description: "3 annual reports auto-filed; 2 more awaiting your approval.",
+      name: "DD Gap Detection",
+      description: "Real-time VDR vs buyer request list; 3 missing items flagged, eliminating redundant Q&A.",
       lastUsed: "Yesterday",
       icon: "filings",
       tag: "Agent Action",
     },
     {
-      name: "Board Intelligence",
-      description: "AI-drafted board materials ready for your review before auto-distribution.",
+      name: "Disclosure Schedule Draft",
+      description: "AI first draft of disclosure schedules from VDR vs SPA reps; counsel review in progress.",
       lastUsed: "Yesterday",
       icon: "boards",
       tag: "Draft Ready",
@@ -206,46 +216,46 @@ const recentApps = {
 const nextActions = {
   "near-term": [
     {
-      title: "Finalize board book for Q1 meeting",
-      detail: "Board meeting in 12 days. Review uploaded materials in Boards and confirm director access.",
-      app: "Boards",
-    },
-    {
-      title: "Review subsidiary compliance calendar",
-      detail: "Annual reports due in 3 jurisdictions next month. Verify registered agent details in Entities.",
+      title: "Decide on 2 TX entities: reinstate now vs defer until LOI",
+      detail: "Entity Compliance Monitor flagged forfeiture with Comptroller. Tax counsel opinion adds 3–5 days if needed.",
       app: "Entities",
     },
     {
-      title: "Follow up on policy attestations",
-      detail: "Code of Conduct refresh at 94% completion. Send reminders to outstanding employees via Policy Manager.",
-      app: "Policy Manager",
+      title: "Review VDR DD gap report—3 items missing vs buyer list",
+      detail: "Upload or redact remaining docs to reduce Q&A grind. Gap report in VDR & Diligence.",
+      app: "VDR",
     },
     {
-      title: "Generate board governance report",
-      detail: "Use AI Reporting to compile attendance, voting patterns, and committee activity for audit committee.",
-      app: "AI Reporting",
+      title: "Sign off on cap table reconciliation exceptions",
+      detail: "1 missing 83(b) and 3 scrivener errors. Tax counsel engaged for 83(b); corrective resolutions drafted.",
+      app: "Carta",
+    },
+    {
+      title: "Chase D&O questionnaires—4 of 6 outstanding",
+      detail: "Director signature tracking in Minute Book & D&O. Escalate if no response by Friday.",
+      app: "Minute Book",
     },
   ],
   "future": [
     {
-      title: "Review AI-generated settlement recommendations",
-      detail: "System has analyzed case precedents and generated optimal settlement ranges for 2 active matters.",
+      title: "Approve VDR auto-population from DMS and Drive",
+      detail: "Agent has classified and indexed 200+ docs; 1–2 week timeline vs 4–8 weeks manual.",
       tag: "AI-Generated",
     },
     {
-      title: "Approve autonomous contract negotiations",
-      detail: "AI has drafted counter-proposals for 3 renewals based on market benchmarks and risk tolerance.",
+      title: "Review AI-generated disclosure schedule first draft",
+      detail: "SPA reps cross-referenced against VDR; human counsel retains editorial control.",
       tag: "Auto-Draft Ready",
     },
     {
-      title: "Validate predictive regulatory impact analysis",
-      detail: "Proactive compliance roadmap generated for upcoming SEC rule changes.",
+      title: "Confirm bring-down certificate schedule for closing",
+      detail: "Disclosure & Certificates agent has ordered 8 Good Standing certs; morning-of verification set.",
       tag: "Predictive",
     },
     {
-      title: "Review AI-drafted board presentation",
-      detail: "System has compiled legal metrics, risk summaries, and governance updates into presentation format.",
-      tag: "Auto-Generated",
+      title: "Validate multi-jurisdiction compliance alerts",
+      detail: "Nightly state checks active; void-entity-at-closing risk cleared for 11 of 12 entities.",
+      tag: "Auto-Updated",
     },
   ],
 };
@@ -253,113 +263,113 @@ const nextActions = {
 const whatsNew = {
   "near-term": [
     {
-      title: "Boards: Consent agenda workflows",
-      detail: "Streamline routine approvals with new consent agenda templates and e-signatures.",
+      title: "Entities: Good Standing dashboard",
+      detail: "Green / Yellow / Red per entity × jurisdiction; track reinstatement and cert expiry.",
       href: "#",
     },
     {
-      title: "Entities: Jurisdiction alerts",
-      detail: "Get notified of filing deadline changes and regulatory updates by jurisdiction.",
+      title: "VDR: DD gap report",
+      detail: "Compare data room contents to buyer request list; real-time gap report to cut redundant Q&A.",
       href: "#",
     },
     {
-      title: "AI Reporting: Natural language queries",
-      detail: "Ask questions in plain English and get instant governance insights.",
+      title: "Cap Table: Carta vs legal doc cross-check",
+      detail: "Flag scrivener errors, missing 83(b)s, and SAFE valuation cap conflicts.",
       href: "#",
     },
   ],
   "future": [
     {
-      title: "Predictive Litigation Outcomes",
-      detail: "AI models trained on case law predict outcomes and optimal strategies.",
+      title: "VDR auto-population & classification",
+      detail: "Connect DMS, Drive, SharePoint; classify docs and auto-upload with indexing. 4–8 weeks → 1–2 weeks.",
       href: "#",
     },
     {
-      title: "Autonomous Contract Negotiation",
-      detail: "AI drafts negotiation positions and redlines based on your playbook.",
+      title: "Multi-jurisdiction compliance monitoring",
+      detail: "Nightly API checks against state registries; void-entity-at-closing alerts mid-transaction.",
       href: "#",
     },
     {
-      title: "Proactive Compliance Engine",
-      detail: "System anticipates regulatory changes and pre-builds compliance roadmaps.",
+      title: "Disclosure schedule AI first draft",
+      detail: "Scan VDR against SPA reps; human counsel retains editorial control. Weeks → days.",
       href: "#",
     },
   ],
 };
 
-// Near-term: Pending regulatory filings awaiting approval
+// Near-term: Pending entity compliance / Good Standing (pre-close)
 const pendingFilings = [
   {
     entity: "Acme Holdings, Inc.",
-    filing: "Delaware Annual Report",
+    filing: "Certificate of Good Standing",
     jurisdiction: "Delaware",
-    dueDate: "Mar 1, 2025",
-    status: "Ready to file",
-    fee: "$225",
-    preparedBy: "Entities",
+    dueDate: "Within 10 days of close",
+    status: "Ready to order",
+    fee: "$50–175",
+    preparedBy: "Entity Compliance",
   },
   {
     entity: "Acme West LLC",
-    filing: "Statement of Information",
-    jurisdiction: "California",
-    dueDate: "Feb 15, 2025",
-    status: "Ready to file",
-    fee: "$20",
-    preparedBy: "Entities",
+    filing: "Reinstatement (if defer to LOI)",
+    jurisdiction: "Texas",
+    dueDate: "Pre-closing",
+    status: "SOS + Comptroller check required",
+    fee: "Form 05-163 + $50",
+    preparedBy: "Entity Compliance",
   },
   {
     entity: "Acme Services Corp.",
-    filing: "Annual Report",
-    jurisdiction: "Nevada",
-    dueDate: "Feb 28, 2025",
-    status: "Ready to file",
-    fee: "$150",
-    preparedBy: "Entities",
+    filing: "Certificate of Good Standing",
+    jurisdiction: "California",
+    dueDate: "Bring-down morning of close",
+    status: "Order when date set",
+    fee: "$800/yr min",
+    preparedBy: "Disclosure & Certificates",
   },
 ];
 
-// Future: Cross-Diligent risk signals requesting GC input
+// Risk signals from M&A/IPO workflow (CFO Journey doc)
 const riskSignals = [
   {
-    source: "Risk Manager",
-    title: "Litigation exposure assessment needed",
-    detail: "Q1 risk register update requires your input on active matter reserves and potential new claims.",
+    source: "Entity Compliance Monitor",
+    title: "Void entity at closing risk—2 TX entities",
+    detail: "Active with SOS but Forfeited with Comptroller. Reinstatement or tax counsel opinion needed before LOI.",
     impact: "High",
-    requestedBy: "Chief Risk Officer",
-    dueDate: "Jan 24",
+    requestedBy: "CFO",
+    dueDate: "Pre-LOI",
   },
   {
-    source: "Contract Intelligence",
-    title: "Vendor concentration risk identified",
-    detail: "3 critical vendors account for 40% of spend. Legal review needed for contingency planning.",
-    impact: "Medium",
-    requestedBy: "Procurement",
+    source: "Cap Table Reconciliation",
+    title: "Missing 83(b) election—multi-million-dollar tax exposure",
+    detail: "30-day deadline passed; not remediable. Tax counsel analysis in progress ($5K–$15K).",
+    impact: "High",
+    requestedBy: "CFO",
     dueDate: "Jan 28",
   },
   {
-    source: "Regulatory Watch",
-    title: "SEC rule impact on disclosure obligations",
-    detail: "Pending climate disclosure rule may affect 10-K filings. Legal interpretation requested.",
-    impact: "High",
-    requestedBy: "CFO",
+    source: "VDR & Diligence",
+    title: "Disclosure schedule gap vs SPA Section 3.7",
+    detail: "Buyer counsel may re-trade if exception not listed. AI first draft flags 4 items for counsel review.",
+    impact: "Medium",
+    requestedBy: "Legal",
     dueDate: "Feb 1",
   },
 ];
 
 const activityLog = {
   "near-term": [
-    "Boards: Q1 board book updated—3 new documents added by CFO.",
-    "Entities: Annual report reminder sent for Delaware subsidiaries (due Feb 28).",
-    "Entities: 3 filings prepared and ready for your approval.",
-    "Policy Manager: Code of Conduct attestation at 94%—6 employees pending.",
-    "AI Reporting: Weekly governance digest generated and emailed to you.",
+    "Entity Compliance: Good Standing audit run—12 entities, 2 TX need Comptroller check.",
+    "VDR & Diligence: DD gap report updated; 3 documents missing vs buyer request list.",
+    "Cap Table: Carta vs board consents—3 scrivener errors, 1 missing 83(b) escalated to tax counsel.",
+    "Minute Book & D&O: 5 missing option grant consents identified; D&O questionnaires 2 of 6 returned.",
+    "Disclosure & Certificates: 8 Good Standing certs ordered; bring-down scheduled for closing.",
   ],
   "future": [
-    "Risk Manager → Legal: Litigation exposure input requested for Q1 risk register.",
-    "Matter Monitor: Predictive model updated—Smith v. Acme settlement probability now 73%.",
-    "Contract Intelligence → Risk Manager: Vendor concentration flagged for enterprise risk review.",
-    "Your risk input auto-synced to enterprise risk register (3 items updated).",
-    "Regulatory Watch: SEC rule impact analysis shared with CFO and Compliance.",
+    "Entity Compliance Monitor: Nightly state-registry checks enabled; void-entity alert cleared for 11 entities.",
+    "VDR & Diligence: Auto-population from DMS and Drive cut setup from 4–8 weeks to 1–2 weeks.",
+    "Cap Table Reconciliation: Automated cross-reference against scanned consents; 83(b) gap alerts on.",
+    "Disclosure & Certificates: AI disclosure schedule first draft generated; counsel review in progress.",
+    "Multi-jurisdiction compliance dashboard live; certificate procurement and bring-down on schedule.",
   ],
 };
 
@@ -405,28 +415,28 @@ function Card({ children, className }: { children: React.ReactNode; className?: 
 
 function VisionToggle({ vision, onChange }: { vision: Vision; onChange: (v: Vision) => void }) {
   return (
-    <div className="flex items-center gap-1 rounded-xl border border-[#30363d] bg-[#0d1117] p-1">
+    <div className="flex items-center gap-1 rounded-xl border border-[#d0d7de] bg-[#f6f8fa] p-1">
       <button
         onClick={() => onChange("near-term")}
         className={cn(
           "rounded-lg px-3 py-1.5 text-xs font-medium transition",
           vision === "near-term"
-            ? "bg-[#21262d] text-[#f0f6fc]"
-            : "text-[#8b949e] hover:text-[#f0f6fc]"
+            ? "bg-[#24292f] text-white"
+            : "text-[#57606a] hover:text-[#24292f]"
         )}
       >
-        Near-term Vision
+        T-24 to T-12 months
       </button>
       <button
         onClick={() => onChange("future")}
         className={cn(
           "rounded-lg px-3 py-1.5 text-xs font-medium transition",
           vision === "future"
-            ? "bg-[#a371f7]/20 text-[#a371f7]"
-            : "text-[#8b949e] hover:text-[#f0f6fc]"
+            ? "bg-[#a371f7]/15 text-[#8957e5]"
+            : "text-[#57606a] hover:text-[#24292f]"
         )}
       >
-        1 Year+ Vision
+        T-12 to close
       </button>
     </div>
   );
@@ -547,88 +557,96 @@ function PrototypeNav({
   onVisionChange,
   device,
   onDeviceChange,
+  model,
+  onModelChange,
 }: { 
   vision: Vision; 
   onVisionChange: (v: Vision) => void;
   device: DeviceType;
   onDeviceChange: (d: DeviceType) => void;
+  model: ModelType;
+  onModelChange: (m: ModelType) => void;
 }) {
   return (
     <>
-      {/* Top bar with version selector */}
-      <div className="w-full border-b border-[#30363d] bg-[#161b22]">
+      {/* Prototype header: Model, Device, Timeframe - light chrome */}
+      <div className="w-full border-b border-[#d0d7de] bg-white">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
-            <span className="text-xs font-medium uppercase tracking-wider text-[#6e7681]">Prototype</span>
-            <span className="text-sm font-semibold text-[#f0f6fc]">General Counsel Command Center</span>
+            <span className="text-xs font-medium uppercase tracking-wider text-[#57606a]">Prototype</span>
+            <span className="text-sm font-semibold text-[#24292f]">IPO & M&A Readiness Command Center</span>
           </div>
           
-          {/* Version Selector */}
           <div className="flex items-center gap-4">
+            {/* 1. Model */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#6e7681]">Model:</span>
-              <div className="flex rounded-lg border border-[#30363d] bg-[#0d1117] p-0.5">
-                <a
-                  href="/now/agentic-hero/dark/general-counsel"
-                  className="rounded-md bg-[#58a6ff] px-3 py-1.5 text-xs font-medium text-white"
-                >
-                  Unified Chat
-                </a>
-                <a
-                  href="/now/agentic-hero/dark/general-counsel/v2"
-                  className="rounded-md px-3 py-1.5 text-xs font-medium text-[#8b949e] hover:text-[#f0f6fc]"
-                >
-                  Split Panel
-                </a>
-                <a
-                  href="/now/agentic-hero/dark/general-counsel/v3"
-                  className="rounded-md px-3 py-1.5 text-xs font-medium text-[#8b949e] hover:text-[#f0f6fc]"
-                >
-                  Chat Thread
-                </a>
+              <span className="text-xs text-[#57606a]">Model:</span>
+              <div className="flex rounded-lg border border-[#d0d7de] bg-[#f6f8fa] p-0.5">
+                {[
+                  { id: "unified" as ModelType, label: "Unified Chat" },
+                  { id: "split" as ModelType, label: "Split Panel" },
+                  { id: "thread" as ModelType, label: "Chat Thread" },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => onModelChange(m.id)}
+                    className={cn(
+                      "rounded-md px-3 py-1.5 text-xs font-medium transition",
+                      model === m.id
+                        ? "bg-[#0969da] text-white"
+                        : "text-[#57606a] hover:text-[#24292f]"
+                    )}
+                  >
+                    {m.label}
+                  </button>
+                ))}
               </div>
             </div>
-            <span className="text-[#30363d]">|</span>
+            <span className="text-[#d0d7de]">|</span>
+            {/* 2. Device */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#57606a]">Device:</span>
+              <div className="flex rounded-lg border border-[#d0d7de] bg-[#f6f8fa] p-0.5">
+                {[
+                  { id: "desktop" as DeviceType, icon: "🖥️" as React.ReactNode, label: "Desktop" },
+                  { id: "ipad" as DeviceType, icon: <TabletIcon className="size-4" />, label: "iPad" },
+                  { id: "iphone" as DeviceType, icon: "📱" as React.ReactNode, label: "iPhone" },
+                ].map((d) => (
+                  <button
+                    key={d.id}
+                    onClick={() => onDeviceChange(d.id)}
+                    title={d.label}
+                    aria-label={d.label}
+                    className={cn(
+                      "flex items-center justify-center rounded-md p-2 text-base transition",
+                      device === d.id
+                        ? "bg-[#24292f] text-white"
+                        : "text-[#57606a] hover:text-[#24292f]"
+                    )}
+                  >
+                    <span className="inline-flex items-center justify-center">{d.icon}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <span className="text-[#d0d7de]">|</span>
+            {/* 3. Timeframe */}
             <VisionToggle vision={vision} onChange={onVisionChange} />
           </div>
         </div>
       </div>
 
-      {/* Device selector + Tambo prompt hints */}
-      <div className="flex flex-col items-center gap-3 bg-[#0d1117] py-4">
-        <div className="flex items-center gap-2 rounded-xl border border-[#30363d] bg-[#161b22] p-1">
-          {[
-            { id: "desktop" as DeviceType, icon: "🖥️", label: "Desktop" },
-            { id: "ipad" as DeviceType, icon: "📱", label: "iPad" },
-            { id: "iphone" as DeviceType, icon: "📱", label: "iPhone" },
-          ].map((d) => (
-            <button
-              key={d.id}
-              onClick={() => onDeviceChange(d.id)}
-              className={cn(
-                "flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition",
-                device === d.id
-                  ? "bg-[#21262d] text-[#f0f6fc]"
-                  : "text-[#8b949e] hover:text-[#f0f6fc]"
-              )}
-            >
-              <span>{d.icon}</span>
-              <span>{d.label}</span>
-            </button>
-          ))}
-        </div>
-        
-        {/* Tambo prompt hints */}
-        <div className="flex items-center gap-2 text-xs text-[#6e7681]">
-          <span className="rounded bg-[#a371f7]/20 px-1.5 py-0.5 text-[10px] font-medium text-[#a371f7]">Live Mode</span>
-          <span>Try:</span>
-          {["who is Sarah Chen", "schedule a meeting", "draft an email", "show me trends", "contracts expiring"].map((prompt, i) => (
-            <span key={prompt}>
-              <span className="text-[#8b949e]">&ldquo;{prompt}&rdquo;</span>
-              {i < 4 && <span className="ml-2 text-[#30363d]">•</span>}
-            </span>
-          ))}
-        </div>
+      {/* Tambo prompt hints */}
+      <div className="flex justify-center gap-2 border-b border-[#d0d7de] bg-[#f6f8fa] px-4 py-3 text-xs text-[#57606a]">
+        <span className="rounded bg-[#a371f7]/15 px-1.5 py-0.5 text-[10px] font-medium text-[#8957e5]">Live Mode</span>
+        <span>Try:</span>
+        {["entity good standing status", "VDR gap report", "cap table discrepancies", "disclosure schedule draft", "certificates for closing"].map((prompt, i) => (
+          <span key={prompt}>
+            <span className="text-[#24292f]">&ldquo;{prompt}&rdquo;</span>
+            {i < 4 && <span className="ml-2 text-[#d0d7de]">•</span>}
+          </span>
+        ))}
       </div>
     </>
   );
@@ -651,11 +669,11 @@ function TopNav({
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <DiligentLogo className="h-7 w-auto" />
-            <span className="text-sm font-semibold text-[#f0f6fc]">Legal Command Center</span>
+            <span className="text-sm font-semibold text-[#f0f6fc]">IPO & M&A Readiness</span>
           </div>
           {vision === "future" && (
             <span className="rounded-full border border-[#a371f7]/40 bg-[#a371f7]/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[#a371f7]">
-              Future Vision
+              T-12 to close
             </span>
           )}
         </div>
@@ -1348,8 +1366,8 @@ function MobileFilingsCard() {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#f0f6fc]">3 filings ready</p>
-            <p className="text-xs text-[#8b949e]">$395 total fees</p>
+            <p className="text-sm font-semibold text-[#f0f6fc]">Entity compliance</p>
+            <p className="text-xs text-[#8b949e]">Certificates & reinstatement</p>
           </div>
         </div>
         <button className="rounded-xl border border-[#3fb950] bg-[#3fb950]/10 px-3 py-2 text-xs font-medium text-[#3fb950]">
@@ -1687,8 +1705,8 @@ function DashboardContent({
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-[#f0f6fc]">Regulatory filings ready for your approval</h3>
-                    <p className="text-xs text-[#8b949e]">Prepared by Entities · Review and approve to submit</p>
+                    <h3 className="text-sm font-semibold text-[#f0f6fc]">Entity compliance & Good Standing</h3>
+                    <p className="text-xs text-[#8b949e]">Certificates, reinstatements, bring-down · Pre-close checklist</p>
                   </div>
                 </div>
                 <span className="rounded-full border border-[#f0883e]/30 bg-[#f0883e]/10 px-2 py-0.5 text-xs font-medium text-[#f0883e]">
@@ -1731,9 +1749,9 @@ function DashboardContent({
               </div>
               <div className="border-t border-[#30363d] bg-[#0d1117]/30 px-5 py-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#6e7681]">Total filing fees: $395</span>
+                  <span className="text-xs text-[#6e7681]">Certificates & reinstatement tracking</span>
                   <button className="text-xs font-medium text-[#58a6ff] hover:underline">
-                    Approve all filings →
+                    View full entity checklist →
                   </button>
                 </div>
               </div>
@@ -1761,7 +1779,7 @@ function DashboardContent({
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-[#f0f6fc]">Cross-Diligent risk signals awaiting your input</h3>
+                    <h3 className="text-sm font-semibold text-[#f0f6fc]">M&A & IPO risk signals awaiting your input</h3>
                     <p className="text-xs text-[#8b949e]">Your legal perspective is needed across the enterprise</p>
                   </div>
                 </div>
@@ -2041,6 +2059,7 @@ function DashboardContent({
 function PageContent({ hasTamboProvider = false }: { hasTamboProvider?: boolean }) {
   const [vision, setVision] = React.useState<Vision>("near-term");
   const [device, setDevice] = React.useState<DeviceType>("desktop");
+  const [model, setModel] = React.useState<ModelType>("unified");
   const [activityOpen, setActivityOpen] = React.useState(false);
   const [hoveredAgent, setHoveredAgent] = React.useState<AgentStatus | null>(null);
   const [popoverPos, setPopoverPos] = React.useState({ x: 0, y: 0 });
@@ -2104,7 +2123,7 @@ function PageContent({ hasTamboProvider = false }: { hasTamboProvider?: boolean 
   };
 
   return (
-    <div className="min-h-screen bg-[#0d1117]">
+    <div className="min-h-screen bg-[#f6f8fa]">
       {/* Canvas overlay */}
       {activeCanvas !== "none" && renderCanvas()}
       
@@ -2116,20 +2135,24 @@ function PageContent({ hasTamboProvider = false }: { hasTamboProvider?: boolean 
             onVisionChange={setVision} 
             device={device}
             onDeviceChange={setDevice}
+            model={model}
+            onModelChange={setModel}
           />
           
           {device === "desktop" ? (
             <div className="mx-auto w-full max-w-6xl px-6 py-6">
-              <DashboardContent {...dashboardProps} device="desktop" />
+              <div className="overflow-hidden rounded-2xl bg-[#0d1117] shadow-xl">
+                <DashboardContent {...dashboardProps} device="desktop" />
+              </div>
             </div>
           ) : device === "ipad" ? (
-            <div className="flex justify-center overflow-x-auto bg-[#0d1117] px-4">
+            <div className="flex justify-center overflow-x-auto px-4 py-6">
               <IPadFrame>
                 <DashboardContent {...dashboardProps} device="ipad" />
               </IPadFrame>
             </div>
           ) : (
-            <div className="flex justify-center overflow-x-auto bg-[#0d1117] px-4">
+            <div className="flex justify-center overflow-x-auto px-4 py-6">
               <IPhoneFrame>
                 <DashboardContent {...dashboardProps} device="iphone" />
               </IPhoneFrame>
