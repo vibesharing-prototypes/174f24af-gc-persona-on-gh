@@ -86,8 +86,8 @@ function TabletIcon({ className }: { className?: string }) {
   );
 }
 
-/** Timeframe toggles per PDF: T-24 Transaction Readiness (1–5), T-12 Sell-Side M&A (6–7, 9–10), Close (8) */
-type Timeframe = "t24" | "t12" | "close";
+/** Timeframe toggles: T-24 Transaction Readiness (1–5), T-12 Sell-Side M&A (6–7, 9–10), Close (8), Post-close (governance / post-IPO) */
+type Timeframe = "t24" | "t12" | "close" | "postclose";
 type DeviceType = "desktop" | "ipad" | "iphone";
 
 type AgentStatus = {
@@ -121,6 +121,12 @@ const agentsByTimeframe: Record<Timeframe, AgentStatus[]> = {
     { name: "Disclosure & Certificates", lastRun: "3 hours ago", nextRun: "tomorrow, 8:00 AM", note: "Disclosure schedules draft in review; 8 Good Standing certs ordered for closing", state: "On schedule", criteria: ["SPA rep vs VDR cross-reference", "Certificate procurement and bring-down", "Funds flow accuracy"], futureNote: "AI-generated disclosure schedule first draft; programmatic cert orders and bring-down", futureCriteria: ["Disclosure schedule AI first draft", "Automated certificate procurement", "Bring-down morning-of verification", "Funds flow checklist"] },
     { name: "Entity Compliance Monitor", lastRun: "12 minutes ago", nextRun: "in 18 minutes", note: "Good Standing green across 12 entities; bring-down certs scheduled.", state: "Monitoring active", criteria: ["State portal status", "Good Standing expiry", "Reinstatement deadlines"], futureNote: "Nightly API checks; void-entity-at-closing alerts", futureCriteria: ["Multi-jurisdiction dashboards", "Certificate expiry alerts", "Bring-down verification scheduling"] },
   ],
+  postclose: [
+    { name: "SEC Filings & Disclosure", lastRun: "2 days ago", nextRun: "before 10-Q deadline", note: "10-Q in progress; Section 16 filings current. Next earnings release in 3 weeks.", state: "On schedule", criteria: ["10-K, 10-Q, 8-K calendar", "Section 16 reporting", "Reg FD compliance"], futureNote: "Filing calendar and draft coordination.", futureCriteria: ["SEC calendar alerts", "Draft routing", "EDGAR readiness"] },
+    { name: "Board & Committee", lastRun: "1 week ago", nextRun: "next board meeting", note: "Audit committee met; materials distributed for next full board. D&O questionnaires annual refresh due.", state: "On schedule", criteria: ["Board materials", "Audit / Comp committee", "D&O questionnaire refresh"], futureNote: "Board portal and meeting prep.", futureCriteria: ["Materials pack assembly", "Committee deadlines", "Director onboarding"] },
+    { name: "SOX & Internal Controls", lastRun: "3 days ago", nextRun: "quarterly", note: "302 certifications on file; 404(a) management assessment in progress for next 10-K.", state: "On schedule", criteria: ["302/404 certifications", "Control testing", "Material weakness monitoring"], futureNote: "Control testing and audit committee reporting.", futureCriteria: ["Certification workflow", "Test results tracking", "Remediation follow-up"] },
+    { name: "Governance & Compliance", lastRun: "5 days ago", nextRun: "ongoing", note: "Insider trading policy acknowledged; Code of Conduct and Related-Party Policy current.", state: "Monitoring active", criteria: ["Insider trading / 10b5-1", "Code of Conduct", "Related-party disclosures"], futureNote: "Policy attestation and disclosure controls.", futureCriteria: ["Policy acknowledgments", "Related-party tracking", "Disclosure controls"] },
+  ],
 };
 
 const recentApps: Record<Timeframe, Array<{ name: string; description: string; lastUsed: string; icon: string; tag?: string }>> = {
@@ -141,6 +147,12 @@ const recentApps: Record<Timeframe, Array<{ name: string; description: string; l
     { name: "Entities", description: "8 Good Standing certs ordered; bring-down scheduled for closing date.", lastUsed: "Jan 16", icon: "entities" },
     { name: "Closing Checklist", description: "12 deliverables tracked; 9 complete, 3 in progress (certificates, consents, funds flow).", lastUsed: "Today", icon: "reporting" },
     { name: "VDR", description: "Full room open to buyer; Q&A substantially complete. Audit trail preserved.", lastUsed: "Jan 15", icon: "entities" },
+  ],
+  postclose: [
+    { name: "Boards", description: "Next board meeting materials in review. Audit and Comp committee schedules current.", lastUsed: "Today", icon: "boards" },
+    { name: "SEC Filings", description: "10-Q draft in progress; Section 16 filings up to date. Earnings release prep started.", lastUsed: "2 days ago", icon: "reporting" },
+    { name: "Audit & SOX", description: "302 certifications filed; 404(a) assessment and control testing on track.", lastUsed: "3 days ago", icon: "reporting" },
+    { name: "Compliance", description: "Insider trading and Code of Conduct acknowledgments current. Related-party questionnaire sent.", lastUsed: "5 days ago", icon: "policy" },
   ],
 };
 
@@ -163,6 +175,12 @@ const nextActions: Record<Timeframe, Array<{ title: string; detail: string; app?
     { title: "Approve funds flow memorandum", detail: "Final allocation: debt payoff, fees, escrow, Paying Agent per waterfall. Single source of truth for closing.", app: "Closing" },
     { title: "Sign off on Working Capital Peg", detail: "LTM average agreed; line-item disputes resolved with buyer. Documentation in SPA.", app: "SPA" },
   ],
+  postclose: [
+    { title: "Finalize and file 10-Q", detail: "Draft in progress. Review with audit and disclosure committee; file before deadline.", app: "SEC Filings" },
+    { title: "Distribute board materials for next meeting", detail: "Pack assembly in progress. Get materials to directors with enough lead time for review.", app: "Boards" },
+    { title: "Complete 302 certifications for quarter", detail: "CEO and CFO certifications; disclosure controls and procedures documented.", app: "Audit & SOX" },
+    { title: "Refresh D&O questionnaires", detail: "Annual D&O update sent. Chase outstanding responses and update governance records.", app: "Boards" },
+  ],
 };
 
 const whatsNew: Record<Timeframe, Array<{ title: string; detail: string; href: string }>> = {
@@ -180,6 +198,11 @@ const whatsNew: Record<Timeframe, Array<{ title: string; detail: string; href: s
     { title: "Disclosure schedule AI first draft", detail: "Scan VDR against SPA reps; human counsel retains editorial control. Weeks → days.", href: "#" },
     { title: "Multi-jurisdiction compliance & bring-down", detail: "Nightly state checks; certificate procurement and morning-of verification scheduling.", href: "#" },
     { title: "Closing checklist dashboard", detail: "Single view of all deliverables, responsible parties, and dependencies.", href: "#" },
+  ],
+  postclose: [
+    { title: "SEC filing calendar", detail: "10-K, 10-Q, 8-K deadlines and Section 16 tracking in one place.", href: "#" },
+    { title: "Board & committee workflow", detail: "Materials, meetings, and D&O questionnaire refresh on a single timeline.", href: "#" },
+    { title: "SOX & certification tracking", detail: "302/404 certifications and control testing status by quarter.", href: "#" },
   ],
 };
 
@@ -256,6 +279,12 @@ const activityLog: Record<Timeframe, string[]> = {
     "Closing checklist: 9 of 12 deliverables complete; certificates, consents, funds flow in progress.",
     "Entity Compliance: Bring-down certs ordered; morning-of verification on schedule.",
   ],
+  postclose: [
+    "SEC Filings: 10-Q draft in progress; Section 16 filings current.",
+    "Board & Committee: Materials distributed for next meeting; audit committee met.",
+    "SOX: 302 certifications on file; 404(a) assessment in progress.",
+    "Governance: Insider trading and Code of Conduct acknowledgments current.",
+  ],
 };
 
 function SectionHeader({
@@ -300,9 +329,10 @@ function Card({ children, className }: { children: React.ReactNode; className?: 
 
 function TimeframeToggle({ timeframe, onChange }: { timeframe: Timeframe; onChange: (t: Timeframe) => void }) {
   const options: { id: Timeframe; label: string }[] = [
-    { id: "t24", label: "T-24 Transaction Readiness (1–5)" },
-    { id: "t12", label: "T-12 Sell-Side M&A (6–7, 9–10)" },
-    { id: "close", label: "Close (8)" },
+    { id: "t24", label: "T-24" },
+    { id: "t12", label: "T-12" },
+    { id: "close", label: "Close" },
+    { id: "postclose", label: "Post-Close" },
   ];
   return (
     <div className="flex items-center gap-1 rounded-xl border border-[#d0d7de] bg-[#f6f8fa] p-1">
@@ -497,7 +527,9 @@ function PrototypeNav({
           ? ["run entity good standing audit", "reconcile cap table with board consents", "audit minute book gaps", "start GAAP transition", "check IP chain of title"]
           : timeframe === "t12"
             ? ["VDR gap report", "CIM financials consistency", "Q&A triage status", "buyer list approval", "diligence checklist"]
-            : ["disclosure schedule draft", "certificates for closing", "funds flow memorandum", "working capital peg", "closing checklist"]
+            : timeframe === "close"
+              ? ["disclosure schedule draft", "certificates for closing", "funds flow memorandum", "working capital peg", "closing checklist"]
+              : ["10-Q filing deadline", "board materials for next meeting", "302 certifications", "Section 16 filings", "D&O questionnaire refresh"]
         ).map((prompt, i, arr) => (
           <span key={prompt}>
             <span className="text-[#24292f]">&ldquo;{prompt}&rdquo;</span>
@@ -510,9 +542,10 @@ function PrototypeNav({
 }
 
 const timeframeLabels: Record<Timeframe, string> = {
-  t24: "T-24 Transaction Readiness (1–5)",
-  t12: "T-12 Sell-Side M&A (6–7, 9–10)",
-  close: "Close (8)",
+  t24: "T-24",
+  t12: "T-12",
+  close: "Close",
+  postclose: "Post-Close",
 };
 
 function TopNav({
@@ -859,13 +892,13 @@ function TamboPromptBoxWithHooks({ timeframe, onOpenCanvas, onFocusChange }: { t
             "font-semibold text-[#f0f6fc] transition-all duration-300",
             isActive ? "text-xl" : "text-lg"
           )}>
-            {timeframe === "t24" ? "Where should we begin?" : "Direct your autonomous Legal AI workforce."}
+            {timeframe === "t24" ? "Want to work on something else?" : timeframe === "postclose" ? "Manage governance and compliance." : "Direct your autonomous ai workforce."}
           </h3>
           <p className={cn(
             "mt-1 text-[#8b949e] transition-all duration-300",
             isActive ? "text-base" : "text-sm"
           )}>
-            {timeframe === "t24" ? "Ask a question or pick a step below. We'll guide you through." : "Ask questions or choose an action below. Work entirely within Diligent."}
+            {timeframe === "t24" ? "Ask a question or pick a step below. We'll guide you through." : timeframe === "postclose" ? "Ask about SEC filings, board materials, or compliance. Work entirely within Diligent." : "Ask questions or choose an action below. Work entirely within Diligent."}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1044,13 +1077,13 @@ function TamboPromptBoxDemoOnly({ timeframe, onOpenCanvas, onFocusChange }: { ti
             "font-semibold text-[#f0f6fc] transition-all duration-300",
             isActive ? "text-xl" : "text-lg"
           )}>
-            {timeframe === "t24" ? "Where should we begin?" : "Direct your autonomous Legal AI workforce."}
+            {timeframe === "t24" ? "Want to work on something else?" : timeframe === "postclose" ? "Manage governance and compliance." : "Direct your autonomous ai workforce."}
           </h3>
           <p className={cn(
             "mt-1 text-[#8b949e] transition-all duration-300",
             isActive ? "text-base" : "text-sm"
           )}>
-            {timeframe === "t24" ? "Ask a question or pick a step below. We'll guide you through." : "Ask questions or choose an action below. Work entirely within Diligent."}
+            {timeframe === "t24" ? "Ask a question or pick a step below. We'll guide you through." : timeframe === "postclose" ? "Ask about SEC filings, board materials, or compliance. Work entirely within Diligent." : "Ask questions or choose an action below. Work entirely within Diligent."}
           </p>
         </div>
         <span className="flex items-center gap-1 rounded-full bg-[#d29922]/10 px-2 py-1 text-[10px] text-[#d29922]">
@@ -1156,6 +1189,7 @@ function PromptBox({ timeframe, onOpenCanvas, hasTamboProvider, onFocusChange }:
 // Mobile-optimized prompt button for iPhone
 function MobilePromptButton({ timeframe, onOpenCanvas }: { timeframe: Timeframe; onOpenCanvas: (canvas: CanvasType) => void }) {
   const isActiveDeal = timeframe === "t12" || timeframe === "close";
+  const isPostclose = timeframe === "postclose";
   return (
     <div className="space-y-3">
       <button 
@@ -1164,7 +1198,9 @@ function MobilePromptButton({ timeframe, onOpenCanvas }: { timeframe: Timeframe;
           "w-full rounded-2xl border p-4 text-left transition",
           isActiveDeal
             ? "border-[#a371f7]/30 bg-[#a371f7]/5 hover:bg-[#a371f7]/10"
-            : "border-[#30363d] bg-[#21262d] hover:bg-[#30363d]"
+            : isPostclose
+              ? "border-[#58a6ff]/30 bg-[#58a6ff]/5 hover:bg-[#58a6ff]/10"
+              : "border-[#30363d] bg-[#21262d] hover:bg-[#30363d]"
         )}
       >
         <div className="flex items-center gap-3">
@@ -1184,7 +1220,7 @@ function MobilePromptButton({ timeframe, onOpenCanvas }: { timeframe: Timeframe;
               "text-sm font-semibold",
               isActiveDeal ? "text-[#a371f7]" : "text-[#f0f6fc]"
             )}>
-              {isActiveDeal ? "Direct AI Workforce" : "Ask Diligent AI"}
+              {isActiveDeal ? "Direct ai workforce" : isPostclose ? "Governance & compliance" : "Ask Diligent AI"}
             </p>
             <p className="text-xs text-[#8b949e]">Tap to start</p>
           </div>
@@ -1382,10 +1418,12 @@ function DashboardContent({
             isIpad && "text-2xl"
           )}>
             {timeframe === "t24" 
-              ? "Where should we begin?"
+              ? "Ready to begin?"
               : timeframe === "t12"
-                ? "Your AI legal workforce is optimizing the deal."
-                : "Closing in view—deliverables and sign-off on track."
+                ? "Your ai workforce is optimizing the deal."
+                : timeframe === "close"
+                  ? "Closing in view—deliverables and sign-off on track."
+                  : "Corporate governance and compliance at a glance."
             }
           </h1>
           <p className="mt-4 text-center text-sm text-[#8b949e]">
@@ -1393,7 +1431,9 @@ function DashboardContent({
               ? "Get transaction ready. We'll walk you through entity compliance, minute books, cap table, and more—step by step."
               : timeframe === "t12"
                 ? "Predictive models are active, autonomous recommendations are ready, and proactive analysis is complete."
-                : "Disclosure schedules, certificates, and funds flow under control. Ready for signing and Day 1."
+                : timeframe === "close"
+                  ? "Disclosure schedules, certificates, and funds flow under control. Ready for signing and Day 1."
+                  : "SEC filings, board materials, SOX certifications, and ongoing compliance—operating as a public company."
             }
           </p>
           {isActiveDeal && (
@@ -1434,7 +1474,9 @@ function DashboardContent({
               "ticker-strip relative mt-4 rounded-2xl border px-4 py-2 transition-all duration-300",
               isActiveDeal
                 ? "border-[#a371f7]/30 bg-[#a371f7]/5"
-                : "border-[#30363d] bg-[#21262d]",
+                : timeframe === "postclose"
+                  ? "border-[#58a6ff]/30 bg-[#58a6ff]/5"
+                  : "border-[#30363d] bg-[#21262d]",
               dimClass
             )}
             ref={tickerRef}
@@ -1447,9 +1489,9 @@ function DashboardContent({
             <div className="flex items-center gap-3">
               <span className={cn(
                 "shrink-0 text-xs font-medium uppercase tracking-[0.2em]",
-                isActiveDeal ? "text-[#a371f7]" : "text-[#6e7681]"
+                isActiveDeal ? "text-[#a371f7]" : timeframe === "postclose" ? "text-[#58a6ff]" : "text-[#6e7681]"
               )}>
-                {isActiveDeal ? "Transaction Readiness Agents" : "Legal Monitoring Agents"}
+                {isActiveDeal ? "Transaction Readiness Agents" : timeframe === "postclose" ? "Governance Agents" : "Legal Monitoring Agents"}
               </span>
               <div className="relative flex-1 overflow-hidden">
                 <div className="ticker-track flex w-max items-center gap-6">
@@ -1481,7 +1523,9 @@ function DashboardContent({
                 "pointer-events-auto absolute z-20 w-80 rounded-2xl border p-4 text-left text-sm shadow-lg transition-colors duration-300",
                 isActiveDeal
                   ? "border-[#a371f7]/30 bg-[#161b22]"
-                  : "border-[#30363d] bg-[#161b22]"
+                  : timeframe === "postclose"
+                    ? "border-[#58a6ff]/30 bg-[#161b22]"
+                    : "border-[#30363d] bg-[#161b22]"
               )}
               style={{
                 left: popoverPos.x,
@@ -1497,9 +1541,9 @@ function DashboardContent({
               <div className="flex items-center justify-between">
                 <div className={cn(
                   "text-xs uppercase tracking-[0.2em]",
-                  isActiveDeal ? "text-[#a371f7]" : "text-[#6e7681]"
+                  isActiveDeal ? "text-[#a371f7]" : timeframe === "postclose" ? "text-[#58a6ff]" : "text-[#6e7681]"
                 )}>
-                  {isActiveDeal ? "AI Agent Capabilities" : "Agent Criteria"}
+                  {isActiveDeal ? "AI Agent Capabilities" : timeframe === "postclose" ? "Governance Agent" : "Agent Criteria"}
                 </div>
                 {isActiveDeal && (
                   <span className="rounded-full border border-[#a371f7]/40 bg-[#a371f7]/10 px-2 py-0.5 text-[10px] text-[#a371f7]">Autonomous</span>
@@ -1514,7 +1558,7 @@ function DashboardContent({
                   <div key={item} className="flex items-start gap-2">
                     <span className={cn(
                       "mt-1 h-1.5 w-1.5 rounded-full",
-                      isActiveDeal ? "bg-[#a371f7]" : "bg-[#6e7681]"
+                      isActiveDeal ? "bg-[#a371f7]" : timeframe === "postclose" ? "bg-[#58a6ff]" : "bg-[#6e7681]"
                     )} />
                     <span>{item}</span>
                   </div>
@@ -1559,14 +1603,16 @@ function DashboardContent({
           </div>
         )}
 
-        {/* Prompt box - full on desktop/iPad, compact button on iPhone */}
-        <div className="mt-8">
-          {isIphone ? (
-            <MobilePromptButton timeframe={timeframe} onOpenCanvas={onOpenCanvas} />
-          ) : (
-            <PromptBox timeframe={timeframe} onOpenCanvas={onOpenCanvas} hasTamboProvider={hasTamboProvider} onFocusChange={setPromptFocused} />
-          )}
-        </div>
+        {/* Prompt box - full on desktop/iPad, compact button on iPhone. For T-12/Close only here; T-24 gets it below Recommended first steps */}
+        {timeframe !== "t24" && (
+          <div className="mt-8">
+            {isIphone ? (
+              <MobilePromptButton timeframe={timeframe} onOpenCanvas={onOpenCanvas} />
+            ) : (
+              <PromptBox timeframe={timeframe} onOpenCanvas={onOpenCanvas} hasTamboProvider={hasTamboProvider} onFocusChange={setPromptFocused} />
+            )}
+          </div>
+        )}
 
         {/* T-24: Transaction readiness checklist (first-time flow — no active items) */}
         {timeframe === "t24" && !isIphone && (
@@ -1718,57 +1764,57 @@ function DashboardContent({
           </section>
         )}
 
-        <section className={cn("mt-10", dimClass)}>
-          <SectionHeader 
-            title={isActiveDeal 
-              ? "Your AI workspace at a glance" 
-              : timeframe === "t24"
-                ? "Your first steps"
-                : "Pick up where you left off"
-            }
-            description={timeframe === "t24" 
-              ? "Start with any step below; we recommend beginning with entity compliance"
-              : !isActiveDeal ? "Continue working in your Diligent applications" : undefined
-            }
-          />
-          <div className={cn(
-            "mt-5 grid gap-3",
-            device === "desktop" && "md:grid-cols-2",
-            isIpad && "grid-cols-2"
-          )}>
-            {recentApps[timeframe].map((app) => (
-              <a
-                key={app.name}
-                href="#"
-                className={cn(
-                  "group block rounded-2xl border px-4 py-3 shadow-sm transition hover:-translate-y-[1px]",
-                  isActiveDeal
-                    ? "border-[#a371f7]/20 bg-[#161b22] hover:border-[#a371f7]/40 hover:bg-[#a371f7]/5"
-                    : "border-[#30363d] bg-[#161b22] hover:border-[#58a6ff]/50 hover:bg-[#21262d]"
-                )}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-sm font-semibold text-[#f0f6fc]">{app.name}</h3>
-                      {"tag" in app && (
-                        <span className="rounded-full border border-[#a371f7]/40 bg-[#a371f7]/10 px-2 py-0.5 text-[10px] font-medium text-[#a371f7]">{app.tag}</span>
-                      )}
-                      <span className="rounded-full border border-[#30363d] bg-[#21262d] px-2 py-0.5 text-[11px] text-[#8b949e]">{app.lastUsed}</span>
+        {/* Your first steps / workspace — hidden in T-24 view */}
+        {timeframe !== "t24" && (
+          <section className={cn("mt-10", dimClass)}>
+            <SectionHeader 
+              title={isActiveDeal 
+                ? "Your AI workspace at a glance" 
+                : timeframe === "postclose"
+                  ? "Your governance workspace"
+                  : "Pick up where you left off"
+              }
+              description={timeframe === "postclose" ? "SEC filings, board materials, and compliance in one place." : !isActiveDeal ? "Continue working in your Diligent applications" : undefined}
+            />
+            <div className={cn(
+              "mt-5 grid gap-3",
+              device === "desktop" && "md:grid-cols-2",
+              isIpad && "grid-cols-2"
+            )}>
+              {recentApps[timeframe].map((app) => (
+                <a
+                  key={app.name}
+                  href="#"
+                  className={cn(
+                    "group block rounded-2xl border px-4 py-3 shadow-sm transition hover:-translate-y-[1px]",
+                    isActiveDeal
+                      ? "border-[#a371f7]/20 bg-[#161b22] hover:border-[#a371f7]/40 hover:bg-[#a371f7]/5"
+                      : "border-[#30363d] bg-[#161b22] hover:border-[#58a6ff]/50 hover:bg-[#21262d]"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-sm font-semibold text-[#f0f6fc]">{app.name}</h3>
+                        {"tag" in app && (
+                          <span className="rounded-full border border-[#a371f7]/40 bg-[#a371f7]/10 px-2 py-0.5 text-[10px] font-medium text-[#a371f7]">{app.tag}</span>
+                        )}
+                        <span className="rounded-full border border-[#30363d] bg-[#21262d] px-2 py-0.5 text-[11px] text-[#8b949e]">{app.lastUsed}</span>
+                      </div>
+                      <p className="mt-1 text-sm text-[#8b949e]">{app.description}</p>
                     </div>
-                    <p className="mt-1 text-sm text-[#8b949e]">{app.description}</p>
+                    <span className={cn(
+                      "text-xs uppercase tracking-[0.2em] opacity-0 transition group-hover:opacity-100",
+                      isActiveDeal ? "text-[#a371f7]" : "text-[#6e7681]"
+                    )}>
+                      {isActiveDeal ? "Review" : "Open"}
+                    </span>
                   </div>
-                  <span className={cn(
-                    "text-xs uppercase tracking-[0.2em] opacity-0 transition group-hover:opacity-100",
-                    isActiveDeal ? "text-[#a371f7]" : "text-[#6e7681]"
-                  )}>
-                    {isActiveDeal ? "Review" : timeframe === "t24" ? "Start" : "Open"}
-                  </span>
-                </div>
-              </a>
-            ))}
-          </div>
-        </section>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className={cn("mt-12", dimClass)}>
           <SectionHeader 
@@ -1776,9 +1822,11 @@ function DashboardContent({
               ? "AI-recommended actions awaiting your approval"
               : timeframe === "t24"
                 ? "Recommended first steps"
-                : isIphone 
-                  ? "Get ahead"
-                  : "Since everything's under control, get ahead of a few things"
+                : timeframe === "postclose"
+                  ? "Governance actions"
+                  : isIphone 
+                    ? "Get ahead"
+                    : "Since everything's under control, get ahead of a few things"
             } 
           />
           <div className={cn(
@@ -1854,19 +1902,21 @@ function DashboardContent({
                 <Card className="p-5">
                   <p className={cn(
                     "text-xs uppercase tracking-[0.2em]",
-                    isActiveDeal ? "text-[#a371f7]" : "text-[#6e7681]"
+                    isActiveDeal ? "text-[#a371f7]" : timeframe === "postclose" ? "text-[#58a6ff]" : "text-[#6e7681]"
                   )}>
-                    {isActiveDeal ? "Coming Capabilities" : timeframe === "t24" ? "What you'll use" : "What's New"}
+                    {isActiveDeal ? "Coming Capabilities" : timeframe === "t24" ? "What you'll use" : timeframe === "postclose" ? "Governance tools" : "What's New"}
                   </p>
                   <h3 className="mt-2 text-lg font-semibold text-[#f0f6fc]">
-                    {isActiveDeal ? "On the AI Roadmap" : timeframe === "t24" ? "Tools for each step" : "Good to Know & Good to Go"}
+                    {isActiveDeal ? "On the AI Roadmap" : timeframe === "t24" ? "Tools for each step" : timeframe === "postclose" ? "SEC, board & compliance" : "Good to Know & Good to Go"}
                   </h3>
                   <p className="mt-2 text-sm text-[#8b949e]">
                     {isActiveDeal
                       ? "Advanced AI capabilities in development for your legal workflow."
                       : timeframe === "t24"
                         ? "These are the Diligent tools you'll use as you complete each readiness step."
-                        : "Learn more about features and capabilities you already have today."
+                        : timeframe === "postclose"
+                          ? "Filing calendars, board workflow, and SOX tracking in one place."
+                          : "Learn more about features and capabilities you already have today."
                     }
                   </p>
                   <div className="mt-4 space-y-3">
@@ -1898,6 +1948,17 @@ function DashboardContent({
           </div>
         </section>
 
+        {/* T-24: Prompt box below Recommended first steps */}
+        {timeframe === "t24" && (
+          <div className="mt-10">
+            {isIphone ? (
+              <MobilePromptButton timeframe={timeframe} onOpenCanvas={onOpenCanvas} />
+            ) : (
+              <PromptBox timeframe={timeframe} onOpenCanvas={onOpenCanvas} hasTamboProvider={hasTamboProvider} onFocusChange={setPromptFocused} />
+            )}
+          </div>
+        )}
+
         {/* Footer - simplified on iPhone */}
         <footer className={cn(
           "mt-14 border-t border-[#30363d] bg-[#0d1117] px-5 py-5",
@@ -1912,7 +1973,9 @@ function DashboardContent({
                     ? "AI agent activity (last 24 hours)"
                     : timeframe === "t24"
                       ? "Your progress will appear here"
-                      : "Recent system activity (last 24 hours)"
+                      : timeframe === "postclose"
+                        ? "Governance activity (last 24 hours)"
+                        : "Recent system activity (last 24 hours)"
                   }
                 </p>
               )}
@@ -1927,10 +1990,10 @@ function DashboardContent({
                   "flex items-start gap-3 text-sm text-[#8b949e]",
                   isIphone && "text-xs"
                 )}>
-                  <span className={cn(
-                    "mt-2 h-1.5 w-1.5 shrink-0 rounded-full",
-                    isActiveDeal ? "bg-[#a371f7]" : "bg-[#3fb950]"
-                  )} />
+                <span className={cn(
+                  "mt-2 h-1.5 w-1.5 shrink-0 rounded-full",
+                  isActiveDeal ? "bg-[#a371f7]" : timeframe === "postclose" ? "bg-[#58a6ff]" : "bg-[#3fb950]"
+                )} />
                   <span>{entry}</span>
                 </div>
               ))
