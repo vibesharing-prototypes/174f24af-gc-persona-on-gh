@@ -86,9 +86,9 @@ function TabletIcon({ className }: { className?: string }) {
   );
 }
 
-type Vision = "near-term" | "future";
+/** Timeframe toggles per PDF: T-24 Transaction Readiness (1–5), T-12 Sell-Side M&A (6–7, 9–10), Close (8) */
+type Timeframe = "t24" | "t12" | "close";
 type DeviceType = "desktop" | "ipad" | "iphone";
-type ModelType = "unified" | "split" | "thread";
 
 type AgentStatus = {
   name: string;
@@ -101,199 +101,85 @@ type AgentStatus = {
   futureCriteria?: string[];
 };
 
-const agents: AgentStatus[] = [
-  {
-    name: "Entity Compliance Monitor",
-    lastRun: "12 minutes ago",
-    nextRun: "in 18 minutes",
-    note: "Good Standing green across 12 entities; 2 TX entities need Comptroller check",
-    state: "Monitoring active",
-    criteria: ["State portal status (DE, CA, TX, UK)", "Good Standing expiry", "Reinstatement deadlines"],
-    futureNote: "Nightly API checks against state registries; void-entity-at-closing alerts on",
-    futureCriteria: ["Multi-jurisdiction dashboards", "Reinstatement timing recommendations", "Certificate expiry alerts", "Bring-down verification scheduling"],
-  },
-  {
-    name: "VDR & Diligence",
-    lastRun: "25 minutes ago",
-    nextRun: "in 35 minutes",
-    note: "Data room 78% populated; 3 DD gaps flagged vs buyer request list",
-    state: "On schedule",
-    criteria: ["VDR vs DD checklist gaps", "Q&A triage and assignment", "Document classification"],
-    futureNote: "Auto-population from DMS/Drive/SharePoint; real-time gap reports",
-    futureCriteria: ["VDR auto-population & indexing", "DD gap detection", "Q&A consistency checks", "Heatmap-driven strategy"],
-  },
-  {
-    name: "Cap Table Reconciliation",
-    lastRun: "1 hour ago",
-    nextRun: "in 2 hours",
-    note: "Carta vs legal docs: 3 scrivener errors, 1 missing 83(b) flagged for tax counsel",
-    state: "Review needed",
-    criteria: ["Carta vs board consents", "83(b) deadline tracking", "SAFE valuation cap conflicts"],
-    futureNote: "Cross-reference Carta against scanned consents; 83(b) and SAFE risk scoring",
-    futureCriteria: ["Automated doc cross-reference", "83(b) gap alerts", "Waterfall impact from SAFE conflicts", "Corrective resolution drafts"],
-  },
-  {
-    name: "Minute Book & D&O",
-    lastRun: "2 hours ago",
-    nextRun: "in 4 hours",
-    note: "5 missing board consents for option grants; D&O questionnaires 2 of 6 returned",
-    state: "In progress",
-    criteria: ["Missing consents vs corporate actions", "DGCL §204 ratification", "D&O questionnaire completion"],
-    futureNote: "Minute book vs corporate action verification; signature escalation workflows",
-    futureCriteria: ["Gap detection and ratification checklist", "Director signature tracking", "409A cross-check at grant date"],
-  },
-  {
-    name: "Disclosure & Certificates",
-    lastRun: "3 hours ago",
-    nextRun: "tomorrow, 8:00 AM",
-    note: "Disclosure schedules draft in review; 8 Good Standing certs ordered for closing",
-    state: "On schedule",
-    criteria: ["SPA rep vs VDR cross-reference", "Certificate procurement and bring-down", "Funds flow accuracy"],
-    futureNote: "AI-generated disclosure schedule first draft; programmatic cert orders and bring-down",
-    futureCriteria: ["Disclosure schedule AI first draft", "Automated certificate procurement", "Bring-down morning-of verification", "Funds flow checklist"],
-  },
-];
-
-const recentApps = {
-  "near-term": [
-    {
-      name: "Entities",
-      description: "Ran jurisdictional Good Standing audit; 2 entities need reinstatement before LOI.",
-      lastUsed: "Jan 16",
-      icon: "entities",
-    },
-    {
-      name: "VDR",
-      description: "Uploaded Phase 2 folders (CIM, summary financials). 14-section hierarchy ready for Phase 3.",
-      lastUsed: "Jan 15",
-      icon: "entities",
-    },
-    {
-      name: "Carta",
-      description: "Cap table reconciliation in progress—pulling board consents from law firm DMS for cross-check.",
-      lastUsed: "Jan 14",
-      icon: "policy",
-    },
-    {
-      name: "Minute Book",
-      description: "Corporate Secretary flagged 5 missing option grant consents; ratification checklist created.",
-      lastUsed: "Jan 12",
-      icon: "reporting",
-    },
+// Agents by timeframe (workflows 1–5 = t24, 6–7/9–10 = t12, 8 = close)
+// T-24 uses first-time flow: no active runs, "Get started" state only
+const agentsByTimeframe: Record<Timeframe, AgentStatus[]> = {
+  t24: [
+    { name: "1. Entity Compliance", lastRun: "Not started", nextRun: "Start", note: "Run a full entity health check across all jurisdictions. Get every entity into Good Standing.", state: "Get started", criteria: ["State portal status (DE, CA, TX, UK)", "Good Standing expiry", "Reinstatement deadlines"], futureNote: "Once running: nightly API checks and void-entity-at-closing alerts.", futureCriteria: ["Multi-jurisdiction dashboards", "Reinstatement timing recommendations", "Certificate expiry alerts"] },
+    { name: "2. Minute Book & D&O", lastRun: "Not started", nextRun: "Start", note: "Audit board minutes and written consents from inception. Fill gaps before a buyer looks.", state: "Get started", criteria: ["Missing consents vs corporate actions", "DGCL §204 ratification", "D&O questionnaire completion"], futureNote: "Gap detection and ratification checklist.", futureCriteria: ["Gap detection and ratification checklist", "Director signature tracking", "409A cross-check at grant date"] },
+    { name: "3. Cap Table Reconciliation", lastRun: "Not started", nextRun: "Start", note: "Reconcile Carta (or your cap table) against legal docs. Catch scrivener errors and 83(b) gaps early.", state: "Get started", criteria: ["Carta vs board consents", "83(b) deadline tracking", "SAFE valuation cap conflicts"], futureNote: "Cross-reference against scanned consents; 83(b) and SAFE risk scoring.", futureCriteria: ["Automated doc cross-reference", "83(b) gap alerts", "Waterfall impact from SAFE conflicts"] },
+    { name: "4. Financial Data & QoE", lastRun: "Not started", nextRun: "Start", note: "GAAP transition and sell-side Quality of Earnings. Build the financial package buyers will trust.", state: "Get started", criteria: ["ASC 606 revenue recognition", "Adjusted EBITDA bridge", "Audit readiness"], futureNote: "Contract-to-revenue consistency; defensible add-back recommendations.", futureCriteria: ["Revenue recognition flagging", "QoE add-back defensibility", "Stale financials alert"] },
+    { name: "5. IP Chain of Title", lastRun: "Not started", nextRun: "Start", note: "Verify PIIAs and run an open-source audit. Clean IP chain of title before marketing.", state: "Get started", criteria: ["PIIA/CIIA present-tense assignment", "SBOM copyleft scan", "Change-of-control in contracts"], futureNote: "SBOM integration; contract clause extraction for CoC risk.", futureCriteria: ["PIIA gap alerts", "SBOM in compliance dashboard", "Contract risk matrix draft"] },
   ],
-  "future": [
-    {
-      name: "VDR Auto-Population",
-      description: "Agent pulled from DMS, Drive, and Carta into VDR; 4–8 week manual cut to 1–2 weeks.",
-      lastUsed: "Today",
-      icon: "ai",
-      tag: "AI-Managed",
-    },
-    {
-      name: "Multi-Jurisdiction Compliance",
-      description: "Nightly state-registry checks; void-entity-at-closing alert triggered for 1 subsidiary.",
-      lastUsed: "Today",
-      icon: "analytics",
-      tag: "Auto-Updated",
-    },
-    {
-      name: "DD Gap Detection",
-      description: "Real-time VDR vs buyer request list; 3 missing items flagged, eliminating redundant Q&A.",
-      lastUsed: "Yesterday",
-      icon: "filings",
-      tag: "Agent Action",
-    },
-    {
-      name: "Disclosure Schedule Draft",
-      description: "AI first draft of disclosure schedules from VDR vs SPA reps; counsel review in progress.",
-      lastUsed: "Yesterday",
-      icon: "boards",
-      tag: "Draft Ready",
-    },
+  t12: [
+    { name: "VDR & Diligence", lastRun: "25 minutes ago", nextRun: "in 35 minutes", note: "Data room 78% populated; 3 DD gaps flagged vs buyer request list", state: "On schedule", criteria: ["VDR vs DD checklist gaps", "Q&A triage and assignment", "Document classification"], futureNote: "Auto-population from DMS/Drive/SharePoint; real-time gap reports", futureCriteria: ["VDR auto-population & indexing", "DD gap detection", "Q&A consistency checks", "Heatmap-driven strategy"] },
+    { name: "CIM & Buyer List", lastRun: "1 day ago", nextRun: "as needed", note: "CIM Financial Overview approved; Short List narrowed to 40 buyers.", state: "On schedule", criteria: ["Teaser/CIM consistency", "Long List → Short List", "Competitive sensitivity"], futureNote: "Cross-document consistency checks; buyer fit scoring", futureCriteria: ["CIM–financials consistency", "Buyer list approval workflow", "Regulatory (HSR/CFIUS) flags"] },
+    { name: "IPO Readiness (if IPO path)", lastRun: "2 days ago", nextRun: "weekly", note: "Gap analysis complete; SOX controls documentation in progress.", state: "In progress", criteria: ["Board composition", "SOX 302/404", "Governance policies"], futureNote: "Board skills matrix vs listing rules; SOX readiness dashboard", futureCriteria: ["Independent director tracking", "Control testing status", "Policy adoption checklist"] },
+    { name: "S-1 & Roadshow (if IPO)", lastRun: "N/A", nextRun: "post–underwriter selection", note: "S-1 drafting not started; Form ID and EDGAR access pending.", state: "Not started", criteria: ["MD&A draft", "SEC comment response", "Cheap stock defense"], futureNote: "MD&A ↔ data consistency; SEC comment precedent lookup", futureCriteria: ["S-1 section tracking", "Comment letter workflow", "Pricing committee prep"] },
+  ],
+  close: [
+    { name: "Disclosure & Certificates", lastRun: "3 hours ago", nextRun: "tomorrow, 8:00 AM", note: "Disclosure schedules draft in review; 8 Good Standing certs ordered for closing", state: "On schedule", criteria: ["SPA rep vs VDR cross-reference", "Certificate procurement and bring-down", "Funds flow accuracy"], futureNote: "AI-generated disclosure schedule first draft; programmatic cert orders and bring-down", futureCriteria: ["Disclosure schedule AI first draft", "Automated certificate procurement", "Bring-down morning-of verification", "Funds flow checklist"] },
+    { name: "Entity Compliance Monitor", lastRun: "12 minutes ago", nextRun: "in 18 minutes", note: "Good Standing green across 12 entities; bring-down certs scheduled.", state: "Monitoring active", criteria: ["State portal status", "Good Standing expiry", "Reinstatement deadlines"], futureNote: "Nightly API checks; void-entity-at-closing alerts", futureCriteria: ["Multi-jurisdiction dashboards", "Certificate expiry alerts", "Bring-down verification scheduling"] },
   ],
 };
 
-const nextActions = {
-  "near-term": [
-    {
-      title: "Decide on 2 TX entities: reinstate now vs defer until LOI",
-      detail: "Entity Compliance Monitor flagged forfeiture with Comptroller. Tax counsel opinion adds 3–5 days if needed.",
-      app: "Entities",
-    },
-    {
-      title: "Review VDR DD gap report—3 items missing vs buyer list",
-      detail: "Upload or redact remaining docs to reduce Q&A grind. Gap report in VDR & Diligence.",
-      app: "VDR",
-    },
-    {
-      title: "Sign off on cap table reconciliation exceptions",
-      detail: "1 missing 83(b) and 3 scrivener errors. Tax counsel engaged for 83(b); corrective resolutions drafted.",
-      app: "Carta",
-    },
-    {
-      title: "Chase D&O questionnaires—4 of 6 outstanding",
-      detail: "Director signature tracking in Minute Book & D&O. Escalate if no response by Friday.",
-      app: "Minute Book",
-    },
+const recentApps: Record<Timeframe, Array<{ name: string; description: string; lastUsed: string; icon: string; tag?: string }>> = {
+  t24: [
+    { name: "Entities", description: "Start your first entity compliance audit. Run a jurisdictional Good Standing check across all entities.", lastUsed: "Not started", icon: "entities", tag: "Step 1" },
+    { name: "Carta", description: "Reconcile your cap table with board consents and legal docs. We'll help you spot mismatches and 83(b) gaps.", lastUsed: "Not started", icon: "policy", tag: "Step 3" },
+    { name: "Minute Book", description: "Audit your minute book and D&O records. Identify missing consents and ratification needs.", lastUsed: "Not started", icon: "reporting", tag: "Step 2" },
+    { name: "Financials / QoE", description: "Begin GAAP transition and Quality of Earnings. Build the financial package for a future CIM.", lastUsed: "Not started", icon: "reporting", tag: "Step 4" },
   ],
-  "future": [
-    {
-      title: "Approve VDR auto-population from DMS and Drive",
-      detail: "Agent has classified and indexed 200+ docs; 1–2 week timeline vs 4–8 weeks manual.",
-      tag: "AI-Generated",
-    },
-    {
-      title: "Review AI-generated disclosure schedule first draft",
-      detail: "SPA reps cross-referenced against VDR; human counsel retains editorial control.",
-      tag: "Auto-Draft Ready",
-    },
-    {
-      title: "Confirm bring-down certificate schedule for closing",
-      detail: "Disclosure & Certificates agent has ordered 8 Good Standing certs; morning-of verification set.",
-      tag: "Predictive",
-    },
-    {
-      title: "Validate multi-jurisdiction compliance alerts",
-      detail: "Nightly state checks active; void-entity-at-closing risk cleared for 11 of 12 entities.",
-      tag: "Auto-Updated",
-    },
+  t12: [
+    { name: "VDR", description: "Uploaded Phase 2 folders (CIM, summary financials). 14-section hierarchy ready for Phase 3.", lastUsed: "Jan 15", icon: "entities" },
+    { name: "CIM / Teaser", description: "Financial Overview and buyer Short List approved; management presentation rehearsed.", lastUsed: "Jan 14", icon: "reporting" },
+    { name: "VDR Q&A", description: "847 diligence questions; 720 answered, 127 pending SME draft. CFO approval queue: 23.", lastUsed: "Today", icon: "entities" },
+    { name: "IPO Readiness", description: "Gap analysis complete; SOX controls and governance policies in progress.", lastUsed: "Jan 11", icon: "boards", tag: "IPO path" },
+  ],
+  close: [
+    { name: "Disclosure Schedules", description: "SPA rep cross-reference in progress; AI first draft in counsel review.", lastUsed: "Today", icon: "boards", tag: "Draft Ready" },
+    { name: "Entities", description: "8 Good Standing certs ordered; bring-down scheduled for closing date.", lastUsed: "Jan 16", icon: "entities" },
+    { name: "Closing Checklist", description: "12 deliverables tracked; 9 complete, 3 in progress (certificates, consents, funds flow).", lastUsed: "Today", icon: "reporting" },
+    { name: "VDR", description: "Full room open to buyer; Q&A substantially complete. Audit trail preserved.", lastUsed: "Jan 15", icon: "entities" },
   ],
 };
 
-const whatsNew = {
-  "near-term": [
-    {
-      title: "Entities: Good Standing dashboard",
-      detail: "Green / Yellow / Red per entity × jurisdiction; track reinstatement and cert expiry.",
-      href: "#",
-    },
-    {
-      title: "VDR: DD gap report",
-      detail: "Compare data room contents to buyer request list; real-time gap report to cut redundant Q&A.",
-      href: "#",
-    },
-    {
-      title: "Cap Table: Carta vs legal doc cross-check",
-      detail: "Flag scrivener errors, missing 83(b)s, and SAFE valuation cap conflicts.",
-      href: "#",
-    },
+const nextActions: Record<Timeframe, Array<{ title: string; detail: string; app?: string; tag?: string }>> = {
+  t24: [
+    { title: "Run your first entity compliance audit", detail: "Get a full jurisdictional health check. We'll show you Good Standing status and any reinstatement needs.", app: "Entities" },
+    { title: "Reconcile your cap table with legal docs", detail: "Compare Carta (or your cap table) to board consents and grant agreements. Catch errors before a buyer does.", app: "Carta" },
+    { title: "Audit your minute book and D&O records", detail: "Review board minutes and written consents from inception. We'll flag missing approvals and ratification steps.", app: "Minute Book" },
+    { title: "Begin GAAP transition and QoE", detail: "Start the financial package: GAAP transition, sell-side Quality of Earnings, and a defensible Adjusted EBITDA bridge.", app: "Financials" },
   ],
-  "future": [
-    {
-      title: "VDR auto-population & classification",
-      detail: "Connect DMS, Drive, SharePoint; classify docs and auto-upload with indexing. 4–8 weeks → 1–2 weeks.",
-      href: "#",
-    },
-    {
-      title: "Multi-jurisdiction compliance monitoring",
-      detail: "Nightly API checks against state registries; void-entity-at-closing alerts mid-transaction.",
-      href: "#",
-    },
-    {
-      title: "Disclosure schedule AI first draft",
-      detail: "Scan VDR against SPA reps; human counsel retains editorial control. Weeks → days.",
-      href: "#",
-    },
+  t12: [
+    { title: "Review VDR DD gap report—3 items missing vs buyer list", detail: "Upload or redact remaining docs to reduce Q&A grind. Gap report in VDR & Diligence.", app: "VDR" },
+    { title: "Approve next batch of Q&A responses (23 pending)", detail: "Consistency check vs CIM and prior answers. Publish within 48-hour SLA.", app: "VDR Q&A" },
+    { title: "Finalize CIM and management presentation for first round", detail: "Cross-check financials, add-backs, and projections across all materials.", app: "CIM" },
+    { title: "Approve VDR auto-population from DMS and Drive", detail: "Agent has classified and indexed 200+ docs; 1–2 week timeline vs 4–8 weeks manual.", tag: "AI-Generated" },
+  ],
+  close: [
+    { title: "Review AI-generated disclosure schedule first draft", detail: "SPA reps cross-referenced against VDR; human counsel retains editorial control.", tag: "Auto-Draft Ready" },
+    { title: "Confirm bring-down certificate schedule for closing", detail: "Disclosure & Certificates agent has ordered 8 Good Standing certs; morning-of verification set.", tag: "Predictive" },
+    { title: "Approve funds flow memorandum", detail: "Final allocation: debt payoff, fees, escrow, Paying Agent per waterfall. Single source of truth for closing.", app: "Closing" },
+    { title: "Sign off on Working Capital Peg", detail: "LTM average agreed; line-item disputes resolved with buyer. Documentation in SPA.", app: "SPA" },
+  ],
+};
+
+const whatsNew: Record<Timeframe, Array<{ title: string; detail: string; href: string }>> = {
+  t24: [
+    { title: "What you'll use: Entities", detail: "Good Standing dashboard by entity and jurisdiction. You'll track reinstatement and cert expiry here.", href: "#" },
+    { title: "What you'll use: Cap Table", detail: "Cross-check Carta vs legal docs. We'll flag scrivener errors, 83(b) gaps, and SAFE conflicts.", href: "#" },
+    { title: "What you'll use: Minute Book", detail: "Gap analysis and ratification checklist. Corporate actions vs board consents; DGCL §204 workflow.", href: "#" },
+  ],
+  t12: [
+    { title: "VDR: DD gap report", detail: "Compare data room contents to buyer request list; real-time gap report to cut redundant Q&A.", href: "#" },
+    { title: "VDR auto-population & classification", detail: "Connect DMS, Drive, SharePoint; classify docs and auto-upload with indexing. 4–8 weeks → 1–2 weeks.", href: "#" },
+    { title: "CIM–financials consistency check", detail: "Cross-document validation for CIM, model, and diligence responses.", href: "#" },
+  ],
+  close: [
+    { title: "Disclosure schedule AI first draft", detail: "Scan VDR against SPA reps; human counsel retains editorial control. Weeks → days.", href: "#" },
+    { title: "Multi-jurisdiction compliance & bring-down", detail: "Nightly state checks; certificate procurement and morning-of verification scheduling.", href: "#" },
+    { title: "Closing checklist dashboard", detail: "Single view of all deliverables, responsible parties, and dependencies.", href: "#" },
   ],
 };
 
@@ -356,20 +242,19 @@ const riskSignals = [
   },
 ];
 
-const activityLog = {
-  "near-term": [
-    "Entity Compliance: Good Standing audit run—12 entities, 2 TX need Comptroller check.",
+const activityLog: Record<Timeframe, string[]> = {
+  t24: [], // First-time flow: no activity yet
+  t12: [
     "VDR & Diligence: DD gap report updated; 3 documents missing vs buyer request list.",
-    "Cap Table: Carta vs board consents—3 scrivener errors, 1 missing 83(b) escalated to tax counsel.",
-    "Minute Book & D&O: 5 missing option grant consents identified; D&O questionnaires 2 of 6 returned.",
-    "Disclosure & Certificates: 8 Good Standing certs ordered; bring-down scheduled for closing.",
+    "CIM & Buyer List: Financial Overview approved; Short List narrowed to 40 buyers.",
+    "VDR Q&A: 127 questions pending SME draft; 23 in CFO approval queue.",
+    "IPO Readiness: Gap analysis complete; SOX controls documentation in progress.",
   ],
-  "future": [
-    "Entity Compliance Monitor: Nightly state-registry checks enabled; void-entity alert cleared for 11 entities.",
-    "VDR & Diligence: Auto-population from DMS and Drive cut setup from 4–8 weeks to 1–2 weeks.",
-    "Cap Table Reconciliation: Automated cross-reference against scanned consents; 83(b) gap alerts on.",
-    "Disclosure & Certificates: AI disclosure schedule first draft generated; counsel review in progress.",
-    "Multi-jurisdiction compliance dashboard live; certificate procurement and bring-down on schedule.",
+  close: [
+    "Disclosure & Certificates: 8 Good Standing certs ordered; bring-down scheduled for closing.",
+    "Disclosure Schedules: AI first draft in counsel review; SPA rep cross-reference in progress.",
+    "Closing checklist: 9 of 12 deliverables complete; certificates, consents, funds flow in progress.",
+    "Entity Compliance: Bring-down certs ordered; morning-of verification on schedule.",
   ],
 };
 
@@ -413,31 +298,28 @@ function Card({ children, className }: { children: React.ReactNode; className?: 
   );
 }
 
-function VisionToggle({ vision, onChange }: { vision: Vision; onChange: (v: Vision) => void }) {
+function TimeframeToggle({ timeframe, onChange }: { timeframe: Timeframe; onChange: (t: Timeframe) => void }) {
+  const options: { id: Timeframe; label: string }[] = [
+    { id: "t24", label: "T-24 Transaction Readiness (1–5)" },
+    { id: "t12", label: "T-12 Sell-Side M&A (6–7, 9–10)" },
+    { id: "close", label: "Close (8)" },
+  ];
   return (
     <div className="flex items-center gap-1 rounded-xl border border-[#d0d7de] bg-[#f6f8fa] p-1">
-      <button
-        onClick={() => onChange("near-term")}
-        className={cn(
-          "rounded-lg px-3 py-1.5 text-xs font-medium transition",
-          vision === "near-term"
-            ? "bg-[#24292f] text-white"
-            : "text-[#57606a] hover:text-[#24292f]"
-        )}
-      >
-        T-24 to T-12 months
-      </button>
-      <button
-        onClick={() => onChange("future")}
-        className={cn(
-          "rounded-lg px-3 py-1.5 text-xs font-medium transition",
-          vision === "future"
-            ? "bg-[#a371f7]/15 text-[#8957e5]"
-            : "text-[#57606a] hover:text-[#24292f]"
-        )}
-      >
-        T-12 to close
-      </button>
+      {options.map((opt) => (
+        <button
+          key={opt.id}
+          onClick={() => onChange(opt.id)}
+          className={cn(
+            "rounded-lg px-2.5 py-1.5 text-xs font-medium transition whitespace-nowrap",
+            timeframe === opt.id
+              ? "bg-[#24292f] text-white"
+              : "text-[#57606a] hover:text-[#24292f]"
+          )}
+        >
+          {opt.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -553,23 +435,19 @@ function IPadFrame({ children }: { children: React.ReactNode }) {
 }
 
 function PrototypeNav({ 
-  vision, 
-  onVisionChange,
+  timeframe, 
+  onTimeframeChange,
   device,
   onDeviceChange,
-  model,
-  onModelChange,
 }: { 
-  vision: Vision; 
-  onVisionChange: (v: Vision) => void;
+  timeframe: Timeframe; 
+  onTimeframeChange: (t: Timeframe) => void;
   device: DeviceType;
   onDeviceChange: (d: DeviceType) => void;
-  model: ModelType;
-  onModelChange: (m: ModelType) => void;
 }) {
   return (
     <>
-      {/* Prototype header: Model, Device, Timeframe - light chrome */}
+      {/* Prototype header: Device, Timeframe - light chrome */}
       <div className="w-full border-b border-[#d0d7de] bg-white">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
@@ -578,33 +456,7 @@ function PrototypeNav({
           </div>
           
           <div className="flex items-center gap-4">
-            {/* 1. Model */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[#57606a]">Model:</span>
-              <div className="flex rounded-lg border border-[#d0d7de] bg-[#f6f8fa] p-0.5">
-                {[
-                  { id: "unified" as ModelType, label: "Unified Chat" },
-                  { id: "split" as ModelType, label: "Split Panel" },
-                  { id: "thread" as ModelType, label: "Chat Thread" },
-                ].map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => onModelChange(m.id)}
-                    className={cn(
-                      "rounded-md px-3 py-1.5 text-xs font-medium transition",
-                      model === m.id
-                        ? "bg-[#0969da] text-white"
-                        : "text-[#57606a] hover:text-[#24292f]"
-                    )}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <span className="text-[#d0d7de]">|</span>
-            {/* 2. Device */}
+            {/* Device */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-[#57606a]">Device:</span>
               <div className="flex rounded-lg border border-[#d0d7de] bg-[#f6f8fa] p-0.5">
@@ -631,20 +483,25 @@ function PrototypeNav({
               </div>
             </div>
             <span className="text-[#d0d7de]">|</span>
-            {/* 3. Timeframe */}
-            <VisionToggle vision={vision} onChange={onVisionChange} />
+            {/* Timeframe */}
+            <TimeframeToggle timeframe={timeframe} onChange={onTimeframeChange} />
           </div>
         </div>
       </div>
 
-      {/* Tambo prompt hints */}
+      {/* Tambo prompt hints — per timeframe */}
       <div className="flex justify-center gap-2 border-b border-[#d0d7de] bg-[#f6f8fa] px-4 py-3 text-xs text-[#57606a]">
         <span className="rounded bg-[#a371f7]/15 px-1.5 py-0.5 text-[10px] font-medium text-[#8957e5]">Live Mode</span>
         <span>Try:</span>
-        {["entity good standing status", "VDR gap report", "cap table discrepancies", "disclosure schedule draft", "certificates for closing"].map((prompt, i) => (
+        {(timeframe === "t24"
+          ? ["run entity good standing audit", "reconcile cap table with board consents", "audit minute book gaps", "start GAAP transition", "check IP chain of title"]
+          : timeframe === "t12"
+            ? ["VDR gap report", "CIM financials consistency", "Q&A triage status", "buyer list approval", "diligence checklist"]
+            : ["disclosure schedule draft", "certificates for closing", "funds flow memorandum", "working capital peg", "closing checklist"]
+        ).map((prompt, i, arr) => (
           <span key={prompt}>
             <span className="text-[#24292f]">&ldquo;{prompt}&rdquo;</span>
-            {i < 4 && <span className="ml-2 text-[#d0d7de]">•</span>}
+            {i < arr.length - 1 && <span className="ml-2 text-[#d0d7de]">•</span>}
           </span>
         ))}
       </div>
@@ -652,16 +509,22 @@ function PrototypeNav({
   );
 }
 
+const timeframeLabels: Record<Timeframe, string> = {
+  t24: "T-24 Transaction Readiness (1–5)",
+  t12: "T-12 Sell-Side M&A (6–7, 9–10)",
+  close: "Close (8)",
+};
+
 function TopNav({
   activityOpen,
   onToggleActivity,
   activityCount,
-  vision,
+  timeframe,
 }: {
   activityOpen: boolean;
   onToggleActivity: () => void;
   activityCount: number;
-  vision: Vision;
+  timeframe: Timeframe;
 }) {
   return (
     <div className="sticky top-0 z-10 -mx-6 mb-8 border-b border-[#30363d] bg-[#0d1117]/90 px-6 py-4 backdrop-blur">
@@ -671,11 +534,9 @@ function TopNav({
             <DiligentLogo className="h-7 w-auto" />
             <span className="text-sm font-semibold text-[#f0f6fc]">IPO & M&A Readiness</span>
           </div>
-          {vision === "future" && (
-            <span className="rounded-full border border-[#a371f7]/40 bg-[#a371f7]/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[#a371f7]">
-              T-12 to close
-            </span>
-          )}
+          <span className="rounded-full border border-[#30363d] bg-[#21262d] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[#8b949e]">
+            {timeframeLabels[timeframe]}
+          </span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -896,7 +757,7 @@ function generateCardsFromContent(content: string, query: string): React.ReactNo
   return undefined;
 }
 
-function TamboPromptBoxWithHooks({ vision, onOpenCanvas, onFocusChange }: { vision: Vision; onOpenCanvas: (canvas: CanvasType) => void; onFocusChange?: (focused: boolean) => void }) {
+function TamboPromptBoxWithHooks({ timeframe, onOpenCanvas, onFocusChange }: { timeframe: Timeframe; onOpenCanvas: (canvas: CanvasType) => void; onFocusChange?: (focused: boolean) => void }) {
   const [inputValue, setInputValue] = React.useState("");
   const [messages, setMessages] = React.useState<Array<{ role: "user" | "assistant"; content: string; component?: React.ReactNode }>>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -998,13 +859,13 @@ function TamboPromptBoxWithHooks({ vision, onOpenCanvas, onFocusChange }: { visi
             "font-semibold text-[#f0f6fc] transition-all duration-300",
             isActive ? "text-xl" : "text-lg"
           )}>
-            {vision === "near-term" ? "What do you need to do?" : "Direct your autonomous Legal AI workforce."}
+            {timeframe === "t24" ? "Where should we begin?" : "Direct your autonomous Legal AI workforce."}
           </h3>
           <p className={cn(
             "mt-1 text-[#8b949e] transition-all duration-300",
             isActive ? "text-base" : "text-sm"
           )}>
-            Ask questions or choose an action below. Work entirely within Diligent.
+            {timeframe === "t24" ? "Ask a question or pick a step below. We'll guide you through." : "Ask questions or choose an action below. Work entirely within Diligent."}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1108,7 +969,7 @@ function TamboPromptBoxWithHooks({ vision, onOpenCanvas, onFocusChange }: { visi
 }
 
 // Demo-only version (no Tambo hooks)
-function TamboPromptBoxDemoOnly({ vision, onOpenCanvas, onFocusChange }: { vision: Vision; onOpenCanvas: (canvas: CanvasType) => void; onFocusChange?: (focused: boolean) => void }) {
+function TamboPromptBoxDemoOnly({ timeframe, onOpenCanvas, onFocusChange }: { timeframe: Timeframe; onOpenCanvas: (canvas: CanvasType) => void; onFocusChange?: (focused: boolean) => void }) {
   const [inputValue, setInputValue] = React.useState("");
   const [messages, setMessages] = React.useState<Array<{ role: "user" | "assistant"; content: string; component?: React.ReactNode }>>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -1183,13 +1044,13 @@ function TamboPromptBoxDemoOnly({ vision, onOpenCanvas, onFocusChange }: { visio
             "font-semibold text-[#f0f6fc] transition-all duration-300",
             isActive ? "text-xl" : "text-lg"
           )}>
-            {vision === "near-term" ? "What do you need to do?" : "Direct your autonomous Legal AI workforce."}
+            {timeframe === "t24" ? "Where should we begin?" : "Direct your autonomous Legal AI workforce."}
           </h3>
           <p className={cn(
             "mt-1 text-[#8b949e] transition-all duration-300",
             isActive ? "text-base" : "text-sm"
           )}>
-            Ask questions or choose an action below. Work entirely within Diligent.
+            {timeframe === "t24" ? "Ask a question or pick a step below. We'll guide you through." : "Ask questions or choose an action below. Work entirely within Diligent."}
           </p>
         </div>
         <span className="flex items-center gap-1 rounded-full bg-[#d29922]/10 px-2 py-1 text-[10px] text-[#d29922]">
@@ -1287,20 +1148,21 @@ function TamboPromptBoxDemoOnly({ vision, onOpenCanvas, onFocusChange }: { visio
 }
 
 // Wrapper that switches based on TamboProvider availability
-function PromptBox({ vision, onOpenCanvas, hasTamboProvider, onFocusChange }: { vision: Vision; onOpenCanvas: (canvas: CanvasType) => void; hasTamboProvider: boolean; onFocusChange?: (focused: boolean) => void }) {
-  if (!hasTamboProvider) return <TamboPromptBoxDemoOnly vision={vision} onOpenCanvas={onOpenCanvas} onFocusChange={onFocusChange} />;
-  return <TamboPromptBoxWithHooks vision={vision} onOpenCanvas={onOpenCanvas} onFocusChange={onFocusChange} />;
+function PromptBox({ timeframe, onOpenCanvas, hasTamboProvider, onFocusChange }: { timeframe: Timeframe; onOpenCanvas: (canvas: CanvasType) => void; hasTamboProvider: boolean; onFocusChange?: (focused: boolean) => void }) {
+  if (!hasTamboProvider) return <TamboPromptBoxDemoOnly timeframe={timeframe} onOpenCanvas={onOpenCanvas} onFocusChange={onFocusChange} />;
+  return <TamboPromptBoxWithHooks timeframe={timeframe} onOpenCanvas={onOpenCanvas} onFocusChange={onFocusChange} />;
 }
 
 // Mobile-optimized prompt button for iPhone
-function MobilePromptButton({ vision, onOpenCanvas }: { vision: Vision; onOpenCanvas: (canvas: CanvasType) => void }) {
+function MobilePromptButton({ timeframe, onOpenCanvas }: { timeframe: Timeframe; onOpenCanvas: (canvas: CanvasType) => void }) {
+  const isActiveDeal = timeframe === "t12" || timeframe === "close";
   return (
     <div className="space-y-3">
       <button 
         onClick={() => onOpenCanvas("search")}
         className={cn(
           "w-full rounded-2xl border p-4 text-left transition",
-          vision === "future"
+          isActiveDeal
             ? "border-[#a371f7]/30 bg-[#a371f7]/5 hover:bg-[#a371f7]/10"
             : "border-[#30363d] bg-[#21262d] hover:bg-[#30363d]"
         )}
@@ -1308,9 +1170,9 @@ function MobilePromptButton({ vision, onOpenCanvas }: { vision: Vision; onOpenCa
         <div className="flex items-center gap-3">
           <div className={cn(
             "flex h-10 w-10 items-center justify-center rounded-xl",
-            vision === "future" ? "bg-[#a371f7]/20" : "bg-[#58a6ff]/20"
+            isActiveDeal ? "bg-[#a371f7]/20" : "bg-[#58a6ff]/20"
           )}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={vision === "future" ? "#a371f7" : "#58a6ff"} strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isActiveDeal ? "#a371f7" : "#58a6ff"} strokeWidth="2">
               <path d="M12 2a10 10 0 1 0 10 10H12V2Z" />
               <path d="M12 12 2.1 9.1" />
               <path d="m12 12 3.9 7.8" />
@@ -1320,9 +1182,9 @@ function MobilePromptButton({ vision, onOpenCanvas }: { vision: Vision; onOpenCa
           <div className="flex-1">
             <p className={cn(
               "text-sm font-semibold",
-              vision === "future" ? "text-[#a371f7]" : "text-[#f0f6fc]"
+              isActiveDeal ? "text-[#a371f7]" : "text-[#f0f6fc]"
             )}>
-              {vision === "future" ? "Direct AI Workforce" : "Ask Diligent AI"}
+              {isActiveDeal ? "Direct AI Workforce" : "Ask Diligent AI"}
             </p>
             <p className="text-xs text-[#8b949e]">Tap to start</p>
           </div>
@@ -1405,7 +1267,8 @@ function MobileRiskSignalsCard() {
 
 // Dashboard content component to allow reuse in device frames
 function DashboardContent({ 
-  vision, 
+  timeframe, 
+  currentAgents,
   activityOpen, 
   setActivityOpen, 
   currentActivityLog,
@@ -1422,12 +1285,13 @@ function DashboardContent({
   onOpenCanvas,
   hasTamboProvider = false,
 }: {
-  vision: Vision;
+  timeframe: Timeframe;
+  currentAgents: AgentStatus[];
   activityOpen: boolean;
   setActivityOpen: (v: boolean) => void;
   currentActivityLog: string[];
-  currentNextActions: typeof nextActions["near-term"] | typeof nextActions["future"];
-  currentWhatsNew: typeof whatsNew["near-term"];
+  currentNextActions: (typeof nextActions)["t24"];
+  currentWhatsNew: (typeof whatsNew)["t24"];
   hoveredAgent: AgentStatus | null;
   setHoveredAgent: (a: AgentStatus | null) => void;
   popoverPos: { x: number; y: number };
@@ -1442,6 +1306,7 @@ function DashboardContent({
   const isIphone = device === "iphone";
   const isIpad = device === "ipad";
   const isMobile = isIphone || isIpad;
+  const isActiveDeal = timeframe === "t12" || timeframe === "close";
   
   // Track prompt box focus state to dim other sections
   const [promptFocused, setPromptFocused] = React.useState(false);
@@ -1451,7 +1316,7 @@ function DashboardContent({
   return (
     <div className={cn(
       "overflow-hidden rounded-3xl border shadow-sm transition-colors duration-300",
-      vision === "future" 
+      isActiveDeal 
         ? "border-[#a371f7]/30 bg-[#161b22]" 
         : "border-[#30363d] bg-[#161b22]",
       isMobile && "rounded-none border-0"
@@ -1461,7 +1326,7 @@ function DashboardContent({
           activityOpen={activityOpen}
           onToggleActivity={() => setActivityOpen(!activityOpen)}
           activityCount={currentActivityLog.length}
-          vision={vision}
+          timeframe={timeframe}
         />
         {activityOpen ? (
           <div className="-mt-4 mb-6">
@@ -1469,7 +1334,7 @@ function DashboardContent({
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   <p className="text-xs uppercase tracking-[0.2em] text-[#6e7681]">Recent activity</p>
-                  {vision === "future" && (
+                  {isActiveDeal && (
                     <span className="rounded-full border border-[#a371f7]/40 bg-[#a371f7]/10 px-2 py-0.5 text-[10px] text-[#a371f7]">AI-Enhanced</span>
                   )}
                 </div>
@@ -1481,15 +1346,22 @@ function DashboardContent({
                 </button>
               </div>
               <div className="mt-3 space-y-2">
-                {currentActivityLog.map((entry) => (
-                  <div key={entry} className="flex items-start gap-3 rounded-xl border border-[#30363d] bg-[#21262d] px-3 py-2">
-                    <div className={cn(
-                      "mt-1 h-2 w-2 rounded-full",
-                      vision === "future" ? "bg-[#a371f7]" : "bg-[#3fb950]"
-                    )} />
-                    <p className="text-sm text-[#8b949e]">{entry}</p>
+                {timeframe === "t24" && currentActivityLog.length === 0 ? (
+                  <div className="rounded-xl border border-[#30363d] bg-[#21262d] px-4 py-5 text-center">
+                    <p className="text-sm text-[#8b949e]">No activity yet.</p>
+                    <p className="mt-1 text-xs text-[#6e7681]">Complete your first step above to see progress here.</p>
                   </div>
-                ))}
+                ) : (
+                  currentActivityLog.map((entry) => (
+                    <div key={entry} className="flex items-start gap-3 rounded-xl border border-[#30363d] bg-[#21262d] px-3 py-2">
+                      <div className={cn(
+                        "mt-1 h-2 w-2 rounded-full",
+                        isActiveDeal ? "bg-[#a371f7]" : "bg-[#3fb950]"
+                      )} />
+                      <p className="text-sm text-[#8b949e]">{entry}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
           </div>
@@ -1497,7 +1369,7 @@ function DashboardContent({
 
         <header className={cn(
           "rounded-3xl border p-10 shadow-sm transition-all duration-300",
-          vision === "future"
+          isActiveDeal
             ? "border-[#a371f7]/30 bg-gradient-to-br from-[#0d1117] to-[#a371f7]/5"
             : "border-[#30363d] bg-[#0d1117]/80",
           isIphone && "p-5 rounded-2xl",
@@ -1509,18 +1381,22 @@ function DashboardContent({
             isIphone && "text-xl",
             isIpad && "text-2xl"
           )}>
-            {vision === "near-term" 
-              ? "Your legal portfolio is in good shape."
-              : "Your AI legal workforce is optimizing outcomes."
+            {timeframe === "t24" 
+              ? "Where should we begin?"
+              : timeframe === "t12"
+                ? "Your AI legal workforce is optimizing the deal."
+                : "Closing in view—deliverables and sign-off on track."
             }
           </h1>
           <p className="mt-4 text-center text-sm text-[#8b949e]">
-            {vision === "near-term"
-              ? "All matters on track, contracts monitored, and compliance current. A good time to prepare and review."
-              : "Predictive models are active, autonomous recommendations are ready, and proactive analysis is complete."
+            {timeframe === "t24"
+              ? "Get transaction ready. We'll walk you through entity compliance, minute books, cap table, and more—step by step."
+              : timeframe === "t12"
+                ? "Predictive models are active, autonomous recommendations are ready, and proactive analysis is complete."
+                : "Disclosure schedules, certificates, and funds flow under control. Ready for signing and Day 1."
             }
           </p>
-          {vision === "future" && (
+          {isActiveDeal && (
             <div className={cn(
               "mt-6 flex justify-center gap-4",
               isIphone && "mt-4 flex-wrap gap-2",
@@ -1551,12 +1427,12 @@ function DashboardContent({
           )}
         </header>
 
-        {/* Agent ticker - hidden on iPhone */}
-        {!isIphone && (
+        {/* Agent ticker - hidden on iPhone and in T-24 view */}
+        {!isIphone && timeframe !== "t24" && (
           <div
             className={cn(
               "ticker-strip relative mt-4 rounded-2xl border px-4 py-2 transition-all duration-300",
-              vision === "future"
+              isActiveDeal
                 ? "border-[#a371f7]/30 bg-[#a371f7]/5"
                 : "border-[#30363d] bg-[#21262d]",
               dimClass
@@ -1571,13 +1447,13 @@ function DashboardContent({
             <div className="flex items-center gap-3">
               <span className={cn(
                 "shrink-0 text-xs font-medium uppercase tracking-[0.2em]",
-                vision === "future" ? "text-[#a371f7]" : "text-[#6e7681]"
+                isActiveDeal ? "text-[#a371f7]" : "text-[#6e7681]"
               )}>
-                {vision === "future" ? "AI Legal Agents" : "Legal Monitoring Agents"}
+                {isActiveDeal ? "Transaction Readiness Agents" : "Legal Monitoring Agents"}
               </span>
               <div className="relative flex-1 overflow-hidden">
                 <div className="ticker-track flex w-max items-center gap-6">
-                  {[...agents, ...agents].map((agent, idx) => (
+                  {[...currentAgents, ...currentAgents].map((agent, idx) => (
                     <div
                       key={`${agent.name}-${idx}`}
                       className="whitespace-nowrap text-sm text-[#8b949e]"
@@ -1603,7 +1479,7 @@ function DashboardContent({
             <div
               className={cn(
                 "pointer-events-auto absolute z-20 w-80 rounded-2xl border p-4 text-left text-sm shadow-lg transition-colors duration-300",
-                vision === "future"
+                isActiveDeal
                   ? "border-[#a371f7]/30 bg-[#161b22]"
                   : "border-[#30363d] bg-[#161b22]"
               )}
@@ -1621,24 +1497,24 @@ function DashboardContent({
               <div className="flex items-center justify-between">
                 <div className={cn(
                   "text-xs uppercase tracking-[0.2em]",
-                  vision === "future" ? "text-[#a371f7]" : "text-[#6e7681]"
+                  isActiveDeal ? "text-[#a371f7]" : "text-[#6e7681]"
                 )}>
-                  {vision === "future" ? "AI Agent Capabilities" : "Agent Criteria"}
+                  {isActiveDeal ? "AI Agent Capabilities" : "Agent Criteria"}
                 </div>
-                {vision === "future" && (
+                {isActiveDeal && (
                   <span className="rounded-full border border-[#a371f7]/40 bg-[#a371f7]/10 px-2 py-0.5 text-[10px] text-[#a371f7]">Autonomous</span>
                 )}
               </div>
               <div className="mt-2 text-base font-semibold text-[#f0f6fc]">{hoveredAgent.name}</div>
               <p className="mt-1 text-sm text-[#8b949e]">
-                {vision === "future" && hoveredAgent.futureNote ? hoveredAgent.futureNote : hoveredAgent.note}
+                {isActiveDeal && hoveredAgent.futureNote ? hoveredAgent.futureNote : hoveredAgent.note}
               </p>
               <div className="mt-3 space-y-1 text-xs text-[#8b949e]">
-                {(vision === "future" && hoveredAgent.futureCriteria ? hoveredAgent.futureCriteria : hoveredAgent.criteria).map((item) => (
+                {(isActiveDeal && hoveredAgent.futureCriteria ? hoveredAgent.futureCriteria : hoveredAgent.criteria).map((item) => (
                   <div key={item} className="flex items-start gap-2">
                     <span className={cn(
                       "mt-1 h-1.5 w-1.5 rounded-full",
-                      vision === "future" ? "bg-[#a371f7]" : "bg-[#6e7681]"
+                      isActiveDeal ? "bg-[#a371f7]" : "bg-[#6e7681]"
                     )} />
                     <span>{item}</span>
                   </div>
@@ -1649,18 +1525,18 @@ function DashboardContent({
                   href="#"
                   className="inline-flex items-center rounded-full border border-[#30363d] bg-[#161b22] px-3 py-1.5 text-xs font-medium text-[#8b949e] hover:bg-[#21262d] hover:text-[#f0f6fc]"
                 >
-                  {vision === "future" ? "Configure AI" : "Edit agent"}
+                  {isActiveDeal ? "Configure AI" : "Edit agent"}
                 </a>
                 <a
                   href="#"
                   className={cn(
                     "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium",
-                    vision === "future"
+                    isActiveDeal
                       ? "border-[#a371f7] bg-[#a371f7] text-white hover:bg-[#8b5cf6]"
                       : "border-[#58a6ff] bg-[#58a6ff] text-[#0d1117] hover:bg-[#79b8ff]"
                   )}
                 >
-                  {vision === "future" ? "Review AI output" : "View activity"}
+                  {isActiveDeal ? "Review AI output" : "View activity"}
                 </a>
               </div>
             </div>
@@ -1686,88 +1562,88 @@ function DashboardContent({
         {/* Prompt box - full on desktop/iPad, compact button on iPhone */}
         <div className="mt-8">
           {isIphone ? (
-            <MobilePromptButton vision={vision} onOpenCanvas={onOpenCanvas} />
+            <MobilePromptButton timeframe={timeframe} onOpenCanvas={onOpenCanvas} />
           ) : (
-            <PromptBox vision={vision} onOpenCanvas={onOpenCanvas} hasTamboProvider={hasTamboProvider} onFocusChange={setPromptFocused} />
+            <PromptBox timeframe={timeframe} onOpenCanvas={onOpenCanvas} hasTamboProvider={hasTamboProvider} onFocusChange={setPromptFocused} />
           )}
         </div>
 
-        {/* Near-term: Pending Filings Approval - compact on iPhone */}
-        {vision === "near-term" && !isIphone && (
+        {/* T-24: Transaction readiness checklist (first-time flow — no active items) */}
+        {timeframe === "t24" && !isIphone && (
           <section className={cn("mt-8", dimClass)}>
             <Card className="p-0 overflow-hidden">
-              <div className="flex items-center justify-between border-b border-[#30363d] bg-[#0d1117]/50 px-5 py-4">
+              <div className="border-b border-[#30363d] bg-[#0d1117]/50 px-5 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f0883e]/10">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 12l2 2 4-4" stroke="#f0883e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="#f0883e" strokeWidth="2"/>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#58a6ff]/10">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 11l3 3L22 4" />
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-[#f0f6fc]">Entity compliance & Good Standing</h3>
-                    <p className="text-xs text-[#8b949e]">Certificates, reinstatements, bring-down · Pre-close checklist</p>
+                    <h3 className="text-sm font-semibold text-[#f0f6fc]">Your transaction readiness checklist</h3>
+                    <p className="text-xs text-[#8b949e]">Five steps to get deal-ready. Start with entity compliance—we recommend going in order.</p>
                   </div>
                 </div>
-                <span className="rounded-full border border-[#f0883e]/30 bg-[#f0883e]/10 px-2 py-0.5 text-xs font-medium text-[#f0883e]">
-                  {pendingFilings.length} pending
-                </span>
               </div>
               <div className="divide-y divide-[#30363d]">
-                {pendingFilings.map((filing) => (
-                  <div key={`${filing.entity}-${filing.filing}`} className={cn(
-                    "flex items-center justify-between px-5 py-3 hover:bg-[#21262d]/50",
+                {[
+                  { step: 1, title: "Entity compliance & Good Standing", desc: "Run a jurisdictional audit. Get every entity into Good Standing.", cta: "Start" },
+                  { step: 2, title: "Minute Book & D&O", desc: "Audit board minutes and written consents; fill gaps and get D&O questionnaires.", cta: "Start" },
+                  { step: 3, title: "Cap table reconciliation", desc: "Reconcile Carta with legal docs. Catch scrivener errors and 83(b) gaps.", cta: "Start" },
+                  { step: 4, title: "Financial data & QoE", desc: "GAAP transition and sell-side Quality of Earnings. Build the financial package.", cta: "Start" },
+                  { step: 5, title: "IP chain of title", desc: "Verify PIIAs and run an open-source audit. Clean chain of title before marketing.", cta: "Start" },
+                ].map((item) => (
+                  <div key={item.step} className={cn(
+                    "flex items-center justify-between px-5 py-4 hover:bg-[#21262d]/50",
                     isIpad && "flex-col items-start gap-3"
                   )}>
                     <div className="flex items-center gap-4">
-                      <div className="h-2 w-2 rounded-full bg-[#f0883e]" />
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#30363d] bg-[#161b22] text-sm font-medium text-[#8b949e]">
+                        {item.step}
+                      </span>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-[#f0f6fc]">{filing.entity}</span>
-                          <span className="text-sm text-[#6e7681]">·</span>
-                          <span className="text-sm text-[#8b949e]">{filing.filing}</span>
-                        </div>
-                        <div className="mt-0.5 flex items-center gap-2 text-xs text-[#6e7681]">
-                          <span>{filing.jurisdiction}</span>
-                          <span>·</span>
-                          <span>Due {filing.dueDate}</span>
-                          <span>·</span>
-                          <span>Fee: {filing.fee}</span>
-                        </div>
+                        <div className="text-sm font-medium text-[#f0f6fc]">{item.title}</div>
+                        <div className="mt-0.5 text-xs text-[#8b949e]">{item.desc}</div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button className="rounded-lg border border-[#30363d] bg-[#161b22] px-3 py-1.5 text-xs text-[#8b949e] hover:bg-[#21262d] hover:text-[#f0f6fc]">
-                        Review
-                      </button>
-                      <button className="rounded-lg border border-[#3fb950] bg-[#3fb950]/10 px-3 py-1.5 text-xs font-medium text-[#3fb950] hover:bg-[#3fb950]/20">
-                        Approve & Submit
-                      </button>
-                    </div>
+                    <button className="rounded-lg border border-[#58a6ff] bg-[#58a6ff]/10 px-3 py-1.5 text-xs font-medium text-[#58a6ff] hover:bg-[#58a6ff]/20">
+                      {item.cta}
+                    </button>
                   </div>
                 ))}
               </div>
               <div className="border-t border-[#30363d] bg-[#0d1117]/30 px-5 py-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#6e7681]">Certificates & reinstatement tracking</span>
-                  <button className="text-xs font-medium text-[#58a6ff] hover:underline">
-                    View full entity checklist →
-                  </button>
-                </div>
+                <p className="text-xs text-[#8b949e]">Complete each step at your pace. You can always come back and run checks again as you get closer to a deal.</p>
               </div>
             </Card>
           </section>
         )}
-        
-        {/* Near-term: Compact filings for iPhone */}
-        {vision === "near-term" && isIphone && (
+
+        {/* T-24: First step CTA for iPhone */}
+        {timeframe === "t24" && isIphone && (
           <section className="mt-6">
-            <MobileFilingsCard />
+            <div className="rounded-2xl border border-[#58a6ff]/30 bg-[#58a6ff]/5 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#58a6ff]/20">
+                    <span className="text-sm font-semibold text-[#58a6ff]">1</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-[#f0f6fc]">Start with entity compliance</p>
+                    <p className="text-xs text-[#8b949e]">Run your first Good Standing audit</p>
+                  </div>
+                </div>
+                <button className="rounded-xl border border-[#58a6ff] bg-[#58a6ff]/10 px-3 py-2 text-xs font-medium text-[#58a6ff]">
+                  Start
+                </button>
+              </div>
+            </div>
           </section>
         )}
 
-        {/* Future: Cross-Diligent Risk Signals - full on desktop/iPad */}
-        {vision === "future" && !isIphone && (
+        {/* T-12 / Close: Cross-Diligent Risk Signals - full on desktop/iPad */}
+        {isActiveDeal && !isIphone && (
           <section className={cn("mt-8", dimClass)}>
             <Card className="p-0 overflow-hidden border-[#a371f7]/20">
               <div className="flex items-center justify-between border-b border-[#a371f7]/20 bg-gradient-to-r from-[#a371f7]/5 to-transparent px-5 py-4">
@@ -1835,8 +1711,8 @@ function DashboardContent({
           </section>
         )}
 
-        {/* Future: Compact risk signals for iPhone */}
-        {vision === "future" && isIphone && (
+        {/* T-12 / Close: Compact risk signals for iPhone */}
+        {isActiveDeal && isIphone && (
           <section className="mt-6">
             <MobileRiskSignalsCard />
           </section>
@@ -1844,13 +1720,15 @@ function DashboardContent({
 
         <section className={cn("mt-10", dimClass)}>
           <SectionHeader 
-            title={vision === "future" 
+            title={isActiveDeal 
               ? "Your AI workspace at a glance" 
-              : "Pick up where you left off"
+              : timeframe === "t24"
+                ? "Your first steps"
+                : "Pick up where you left off"
             }
-            description={vision === "near-term" 
-              ? "Continue working in your Diligent applications"
-              : undefined
+            description={timeframe === "t24" 
+              ? "Start with any step below; we recommend beginning with entity compliance"
+              : !isActiveDeal ? "Continue working in your Diligent applications" : undefined
             }
           />
           <div className={cn(
@@ -1858,13 +1736,13 @@ function DashboardContent({
             device === "desktop" && "md:grid-cols-2",
             isIpad && "grid-cols-2"
           )}>
-            {recentApps[vision].map((app) => (
+            {recentApps[timeframe].map((app) => (
               <a
                 key={app.name}
                 href="#"
                 className={cn(
                   "group block rounded-2xl border px-4 py-3 shadow-sm transition hover:-translate-y-[1px]",
-                  vision === "future"
+                  isActiveDeal
                     ? "border-[#a371f7]/20 bg-[#161b22] hover:border-[#a371f7]/40 hover:bg-[#a371f7]/5"
                     : "border-[#30363d] bg-[#161b22] hover:border-[#58a6ff]/50 hover:bg-[#21262d]"
                 )}
@@ -1882,9 +1760,9 @@ function DashboardContent({
                   </div>
                   <span className={cn(
                     "text-xs uppercase tracking-[0.2em] opacity-0 transition group-hover:opacity-100",
-                    vision === "future" ? "text-[#a371f7]" : "text-[#6e7681]"
+                    isActiveDeal ? "text-[#a371f7]" : "text-[#6e7681]"
                   )}>
-                    {vision === "future" ? "Review" : "Open"}
+                    {isActiveDeal ? "Review" : timeframe === "t24" ? "Start" : "Open"}
                   </span>
                 </div>
               </a>
@@ -1894,11 +1772,13 @@ function DashboardContent({
 
         <section className={cn("mt-12", dimClass)}>
           <SectionHeader 
-            title={vision === "future" 
+            title={isActiveDeal 
               ? "AI-recommended actions awaiting your approval"
-              : isIphone 
-                ? "Get ahead"
-                : "Since everything's under control, get ahead of a few things"
+              : timeframe === "t24"
+                ? "Recommended first steps"
+                : isIphone 
+                  ? "Get ahead"
+                  : "Since everything's under control, get ahead of a few things"
             } 
           />
           <div className={cn(
@@ -1914,7 +1794,7 @@ function DashboardContent({
                     key={action.title}
                     className={cn(
                       "rounded-2xl border px-5 py-4 shadow-sm transition-colors duration-300",
-                      vision === "future"
+                      isActiveDeal
                         ? "border-[#a371f7]/20 bg-[#161b22]"
                         : "border-[#30363d] bg-[#161b22]",
                       isIphone && "px-4 py-3"
@@ -1944,19 +1824,19 @@ function DashboardContent({
                               {action.app}
                             </span>
                           )}
-                          {vision === "near-term" && !isIphone && (
-                            <span className="text-[#6e7681]">Ready to complete</span>
+                          {timeframe === "t24" && !isIphone && (
+                            <span className="text-[#6e7681]">Start when you're ready</span>
                           )}
                         </div>
                       </div>
                       <button className={cn(
                         "shrink-0 rounded-xl border px-3 py-2 text-sm",
-                        vision === "future"
+                        isActiveDeal
                           ? "border-[#a371f7] bg-[#a371f7]/10 text-[#a371f7] hover:bg-[#a371f7]/20"
                           : "border-[#58a6ff] bg-[#58a6ff]/10 text-[#58a6ff] hover:bg-[#58a6ff]/20",
                         isMobile && "w-full"
                       )}>
-                        {vision === "future" ? "Approve" : "Open in app"}
+                        {isActiveDeal ? "Approve" : timeframe === "t24" ? "Start" : "Open in app"}
                       </button>
                     </div>
                   </div>
@@ -1974,17 +1854,19 @@ function DashboardContent({
                 <Card className="p-5">
                   <p className={cn(
                     "text-xs uppercase tracking-[0.2em]",
-                    vision === "future" ? "text-[#a371f7]" : "text-[#6e7681]"
+                    isActiveDeal ? "text-[#a371f7]" : "text-[#6e7681]"
                   )}>
-                    {vision === "future" ? "Coming Capabilities" : "What's New"}
+                    {isActiveDeal ? "Coming Capabilities" : timeframe === "t24" ? "What you'll use" : "What's New"}
                   </p>
                   <h3 className="mt-2 text-lg font-semibold text-[#f0f6fc]">
-                    {vision === "future" ? "On the AI Roadmap" : "Good to Know & Good to Go"}
+                    {isActiveDeal ? "On the AI Roadmap" : timeframe === "t24" ? "Tools for each step" : "Good to Know & Good to Go"}
                   </h3>
                   <p className="mt-2 text-sm text-[#8b949e]">
-                    {vision === "future"
+                    {isActiveDeal
                       ? "Advanced AI capabilities in development for your legal workflow."
-                      : "Learn more about features and capabilities you already have today."
+                      : timeframe === "t24"
+                        ? "These are the Diligent tools you'll use as you complete each readiness step."
+                        : "Learn more about features and capabilities you already have today."
                     }
                   </p>
                   <div className="mt-4 space-y-3">
@@ -1994,7 +1876,7 @@ function DashboardContent({
                         href={item.href}
                         className={cn(
                           "block rounded-xl border px-4 py-3 transition",
-                          vision === "future"
+                          isActiveDeal
                             ? "border-[#a371f7]/20 bg-[#0d1117] hover:border-[#a371f7]/40 hover:bg-[#a371f7]/5"
                             : "border-[#30363d] bg-[#0d1117] hover:border-[#58a6ff]/50 hover:bg-[#21262d]"
                         )}
@@ -2003,9 +1885,9 @@ function DashboardContent({
                         <p className="mt-1 text-sm text-[#8b949e]">{item.detail}</p>
                         <p className={cn(
                           "mt-3 text-xs uppercase tracking-[0.2em]",
-                          vision === "future" ? "text-[#a371f7]" : "text-[#58a6ff]"
+                          isActiveDeal ? "text-[#a371f7]" : "text-[#58a6ff]"
                         )}>
-                          {vision === "future" ? "Learn More" : "Open"}
+                          {isActiveDeal ? "Learn More" : "Open"}
                         </p>
                       </a>
                     ))}
@@ -2026,28 +1908,33 @@ function DashboardContent({
               <p className="text-xs uppercase tracking-[0.2em] text-[#6e7681]">System log</p>
               {!isIphone && (
                 <p className="mt-1 text-sm text-[#8b949e]">
-                  {vision === "future" 
+                  {isActiveDeal 
                     ? "AI agent activity (last 24 hours)"
-                    : "Recent system activity (last 24 hours)"
+                    : timeframe === "t24"
+                      ? "Your progress will appear here"
+                      : "Recent system activity (last 24 hours)"
                   }
                 </p>
               )}
             </div>
           </div>
           <div className="mt-4 grid gap-2">
-            {/* Show only 3 entries on iPhone */}
-            {(isIphone ? currentActivityLog.slice(0, 3) : currentActivityLog).map((entry) => (
-              <div key={entry} className={cn(
-                "flex items-start gap-3 text-sm text-[#8b949e]",
-                isIphone && "text-xs"
-              )}>
-                <span className={cn(
-                  "mt-2 h-1.5 w-1.5 shrink-0 rounded-full",
-                  vision === "future" ? "bg-[#a371f7]" : "bg-[#3fb950]"
-                )} />
-                <span>{entry}</span>
-              </div>
-            ))}
+            {timeframe === "t24" && currentActivityLog.length === 0 ? (
+              <p className="text-sm text-[#6e7681]">No activity yet. Complete your first step above to see progress here.</p>
+            ) : (
+              (isIphone ? currentActivityLog.slice(0, 3) : currentActivityLog).map((entry) => (
+                <div key={entry} className={cn(
+                  "flex items-start gap-3 text-sm text-[#8b949e]",
+                  isIphone && "text-xs"
+                )}>
+                  <span className={cn(
+                    "mt-2 h-1.5 w-1.5 shrink-0 rounded-full",
+                    isActiveDeal ? "bg-[#a371f7]" : "bg-[#3fb950]"
+                  )} />
+                  <span>{entry}</span>
+                </div>
+              ))
+            )}
           </div>
         </footer>
       </div>
@@ -2057,9 +1944,8 @@ function DashboardContent({
 
 // Main page content component
 function PageContent({ hasTamboProvider = false }: { hasTamboProvider?: boolean }) {
-  const [vision, setVision] = React.useState<Vision>("near-term");
+  const [timeframe, setTimeframe] = React.useState<Timeframe>("t24");
   const [device, setDevice] = React.useState<DeviceType>("desktop");
-  const [model, setModel] = React.useState<ModelType>("unified");
   const [activityOpen, setActivityOpen] = React.useState(false);
   const [hoveredAgent, setHoveredAgent] = React.useState<AgentStatus | null>(null);
   const [popoverPos, setPopoverPos] = React.useState({ x: 0, y: 0 });
@@ -2080,12 +1966,14 @@ function PageContent({ hasTamboProvider = false }: { hasTamboProvider?: boolean 
     setCanvasPrompt("");
   };
 
-  const currentActivityLog = activityLog[vision];
-  const currentNextActions = nextActions[vision];
-  const currentWhatsNew = whatsNew[vision];
+  const currentActivityLog = activityLog[timeframe];
+  const currentNextActions = nextActions[timeframe];
+  const currentWhatsNew = whatsNew[timeframe];
+  const currentAgents = agentsByTimeframe[timeframe];
 
   const dashboardProps = {
-    vision,
+    timeframe,
+    currentAgents,
     activityOpen,
     setActivityOpen,
     currentActivityLog,
@@ -2131,12 +2019,10 @@ function PageContent({ hasTamboProvider = false }: { hasTamboProvider?: boolean 
       {activeCanvas === "none" && (
         <>
           <PrototypeNav 
-            vision={vision} 
-            onVisionChange={setVision} 
+            timeframe={timeframe} 
+            onTimeframeChange={setTimeframe} 
             device={device}
             onDeviceChange={setDevice}
-            model={model}
-            onModelChange={setModel}
           />
           
           {device === "desktop" ? (
