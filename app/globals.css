@@ -3,9 +3,97 @@
 @tailwind utilities;
 
 :root {
+  /* Page chrome — dark mode default */
+  --background: #0d1117;
+  --foreground: #e8edf3;
+  --chrome-border: #30363d;
+  /* Exit Machine / Deal Readiness */
+  --em-bg: #0d1117;
+  --em-bg2: #131920;
+  --em-bg3: #1a2130;
+  --em-bg4: #1e2840;
+  --em-border: #1e2a3a;
+  --em-border2: #253040;
+  --em-text: #e8edf3;
+  --em-text2: #8a9bb0;
+  --em-text3: #5a6a7e;
+  --em-red: #e85555;
+  --em-orange: #e8913a;
+  --em-green: #34c97a;
+  --em-blue: #4a9eff;
+  --em-purple: #7c6af7;
+  --em-purple2: #5a4ed4;
+  --em-teal: #2dd4bf;
+  --em-diligent: #e53935;
+  /* Exit Readiness alert card (phase 1) */
+  --em-alert-bg: linear-gradient(160deg, #1a1540 0%, #0d1a30 60%, #0d1117 100%);
+  --em-alert-inner-bg: rgba(0, 0, 0, 0.25);
+  --em-alert-text: var(--em-text);
+  --em-alert-text-muted: var(--em-text2);
+  --em-alert-text-dim: var(--em-text3);
+  /* Transaction Complete panel (phase 5) */
+  --em-complete-bg: linear-gradient(135deg, #0d3a20, #0d2040);
+  --em-complete-box-bg: var(--em-bg3);
+  --em-complete-box-text: var(--em-text2);
+  /* Command Center / shared card palette */
+  --cc-bg: #0d1117;
+  --cc-bg2: #161b22;
+  --cc-bg3: #21262d;
+  --cc-border: #30363d;
+  --cc-text: #f0f6fc;
+  --cc-text-muted: #8b949e;
+  --cc-text-dim: #6e7681;
+  --cc-accent: #58a6ff;
+  --cc-purple: #a371f7;
+  --cc-success: #3fb950;
+  --cc-warning: #d29922;
+  --cc-danger: #da3633;
+}
+
+/* Light mode — inverse of dark (proto-panel adds html.light) */
+html.light {
   --background: #f6f8fa;
   --foreground: #24292f;
   --chrome-border: #d0d7de;
+  --em-bg: #f6f8fa;
+  --em-bg2: #eaeef2;
+  --em-bg3: #e0e6ed;
+  --em-bg4: #d4dbe4;
+  --em-border: #c8d1dc;
+  --em-border2: #b8c4d0;
+  --em-text: #1a2332;
+  --em-text2: #4a5a6e;
+  --em-text3: #6b7a8c;
+  --em-red: #cf222e;
+  --em-orange: #bc4c00;
+  --em-green: #1a7f37;
+  --em-blue: #0969da;
+  --em-purple: #8250df;
+  --em-purple2: #6639ba;
+  --em-teal: #1f7a7a;
+  --em-diligent: #cf222e;
+  --em-alert-bg: linear-gradient(160deg, #f5f3fb 0%, #eef0f5 60%, #f6f8fa 100%);
+  --em-alert-inner-bg: #e8e6f2;
+  /* Slightly darker text on alert card in light mode for higher contrast */
+  --em-alert-text: #0f1729;
+  --em-alert-text-muted: #374151;
+  --em-alert-text-dim: #4b5563;
+  /* Transaction Complete panel — light background, high-contrast text */
+  --em-complete-bg: linear-gradient(135deg, #e6f4ee 0%, #e8eef5 100%);
+  --em-complete-box-bg: #d4e5e0;
+  --em-complete-box-text: #1a3329;
+  --cc-bg: #ffffff;
+  --cc-bg2: #f6f8fa;
+  --cc-bg3: #eaeef2;
+  --cc-border: #d0d7de;
+  --cc-text: #24292f;
+  --cc-text-muted: #57606a;
+  --cc-text-dim: #6e7781;
+  --cc-accent: #0969da;
+  --cc-purple: #8250df;
+  --cc-success: #1a7f37;
+  --cc-warning: #9a6700;
+  --cc-danger: #cf222e;
 }
 
 body {
@@ -15,6 +103,25 @@ body {
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #eaeef2; }
-::-webkit-scrollbar-thumb { background: #afb8c1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #8c959f; }
+:root::-webkit-scrollbar-track { background: #21262d; }
+:root::-webkit-scrollbar-thumb { background: #484f58; border-radius: 4px; }
+:root::-webkit-scrollbar-thumb:hover { background: #6e7681; }
+html.light::-webkit-scrollbar-track { background: #eaeef2; }
+html.light::-webkit-scrollbar-thumb { background: #afb8c1; border-radius: 4px; }
+html.light::-webkit-scrollbar-thumb:hover { background: #8c959f; }
+
+@keyframes agent-flash {
+  0% { opacity: 0.6; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.agent-name-flash {
+  animation: agent-flash 0.35s ease-out;
+}
+@keyframes scorecard-counts-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.scorecard-counts-in {
+  animation: scorecard-counts-in 0.4s ease-out forwards;
+}

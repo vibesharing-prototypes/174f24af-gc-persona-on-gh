@@ -817,7 +817,7 @@ export function WorkflowCanvas({ onClose, initialPrompt }: CanvasProps) {
               onClick={onClose}
               className="w-full rounded-xl border border-[#30363d] bg-[#161b22] px-4 py-3 text-sm text-[#8b949e] hover:bg-[#21262d]"
             >
-              Return to Command Center
+              Return to Deal Readiness
             </button>
           </div>
         )}
@@ -1521,7 +1521,7 @@ export function MeetingCanvas({ onClose, initialPrompt }: CanvasProps) {
               onClick={onClose}
               className="w-full rounded-xl border border-[#30363d] bg-[#21262d] py-3 text-sm text-[#8b949e] hover:bg-[#30363d]"
             >
-              Return to Command Center
+              Return to Deal Readiness
             </button>
           </div>
         ) : !attendees.length ? (
@@ -1794,7 +1794,7 @@ General Counsel`);
               onClick={onClose}
               className="w-full rounded-xl border border-[#30363d] bg-[#21262d] py-3 text-sm text-[#8b949e] hover:bg-[#30363d]"
             >
-              Return to Command Center
+              Return to Deal Readiness
             </button>
           </div>
         ) : !subject ? (

@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "IPO & M&A Readiness - Command Center",
+  title: "IPO & M&A Readiness",
   description: "CFO journey validation: sell-side M&A and IPO readiness dashboard prototype",
 };
 
